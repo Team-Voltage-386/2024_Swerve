@@ -212,8 +212,8 @@ public class Drivetrain implements Subsystem {
         updateOdometry();
     }
 
-    public void driveWithChasisSpeeds(ChassisSpeeds CS) {
-        SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(CS);
+    public void driveWithChasisSpeeds(ChassisSpeeds chassisSpeeds) {
+        SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
 

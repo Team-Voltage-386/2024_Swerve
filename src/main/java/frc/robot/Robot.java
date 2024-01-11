@@ -8,8 +8,10 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.Deadbands;
-import frc.robot.Constants.Controller;;
+import frc.robot.Constants.Controller;
 
 public class Robot extends TimedRobot {
     // private final DoubleSolenoid m_doubleSolenoid = new DoubleSolenoid(0,
@@ -17,17 +19,35 @@ public class Robot extends TimedRobot {
 
     private final XboxController m_controller = new XboxController(Controller.kDriveController);
     private final Drivetrain m_swerve = new Drivetrain();
+    private final RobotContainer containter = new RobotContainer();
 
     // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(Controller.kRateLimitXSpeed);
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(Controller.kRateLimitYSpeed);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(Controller.kRateLimitRot);
 
+    Command autonomousCommand;
+
+    @Override
+    public void robotInit() {
+        autonomousCommand = containter.getAutonomousCommand();
+    }
+
+    @Override
+    public void autonomousInit() {
+        autonomousCommand.schedule();
+    }
+
+    @Override
+    public void teleopInit() {
+        
+    }
+
     @Override
     public void autonomousPeriodic() {
-        driveWithJoystick(false);
-        m_swerve.updateOdometry();
-    }
+        autonomousCommand.execute();
+        //m_swerve.updateOdometry(); Shouldnt need because driveWithChassisSpeeds already calls it
+    } 
 
     @Override
     public void teleopPeriodic() {
@@ -35,10 +55,15 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void robotPeriodic() {
+        CommandScheduler.getInstance().run();
+    }
+
+    @Override
     public void disabledPeriodic() {
         // Only needed when measuring and configuring the encoder offsets. Can comment
         // out when not used
-        // m_swerve.print();
+        //m_swerve.print();
     }
 
     private void driveWithJoystick(boolean fieldRelative) {
