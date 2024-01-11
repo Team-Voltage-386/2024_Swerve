@@ -107,7 +107,6 @@ public class Drivetrain implements Subsystem {
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
-        m_gyro.zeroGyroBiasNow();
         this.resetGyro();
 
         // Configure AutoBuilder last
