@@ -32,8 +32,6 @@ import frc.robot.Drivetrain;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
-  private final Drivetrain swerve = new Drivetrain();
 
   private final SendableChooser<Command> autoChooser;
 
@@ -45,10 +43,15 @@ public class RobotContainer {
     // Configure the trigger bindings
     configureBindings();
 
-    autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
+    // Configure the button bindings
+
+    autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
+    // Create choices for autonomous functions in the Smart Dashboard
+    autoChooser.setDefaultOption("Autonomous Command", path1);
     SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
+  Command path1;
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -60,10 +63,12 @@ public class RobotContainer {
    */
   private void configureBindings() {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
-    SmartDashboard.putData("Example Auto", new PathPlannerAuto("Example Auto"));
+    // SmartDashboard.putData("Example Auto", new PathPlannerAuto("Example Auto"));
+    // SmartDashboard.putData("Example auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
-    SmartDashboard.putData("Example path", AutoBuilder.followPath(path));
+    PathPlannerPath path = PathPlannerPath.fromPathFile("New Path");
+    path1 = AutoBuilder.followPath(path);
+    //SmartDashboard.putData("Example path", path1);
     // Add a button to run pathfinding commands to SmartDashboard
     // SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(
     //   new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), 
@@ -116,6 +121,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    return path1;
   }
 }
