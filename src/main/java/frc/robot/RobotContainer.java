@@ -67,7 +67,7 @@ public class RobotContainer {
     SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
     //PathPlannerPath path = PathPlannerPath.fromPathFile("New1 Path");
-    path1 = AutoBuilder.buildAuto("New Auto");
+    path1 = AutoBuilder.buildAuto("Auto1");
     //SmartDashboard.putData("Example path", path1);
     // Add a button to run pathfinding commands to SmartDashboard
     // SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(

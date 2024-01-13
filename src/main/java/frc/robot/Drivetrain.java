@@ -28,7 +28,7 @@ import frc.robot.Constants.DriveTrain;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain implements Subsystem {
-    public static final double kMaxPossibleSpeed = 3.0; // meters per second
+    public static final double kMaxPossibleSpeed = 4.5; // meters per second
     public static final double kMaxAngularSpeed = 3 * Math.PI; // per second
 
     private final Translation2d m_frontLeftLocation = new Translation2d(
@@ -116,7 +116,7 @@ public class Drivetrain implements Subsystem {
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 this::driveWithChasisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                        new PIDConstants(5.5, 0.0, 0.0), // Translation PID constants
                         new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
                         kMaxPossibleSpeed, // Max module speed, in m/s
                         DriveTrain.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
@@ -147,8 +147,8 @@ public class Drivetrain implements Subsystem {
 
     public void resetOdo(Pose2d pose) {
         resetGyro();
-        System.out.println(getGyroYawRotation2d().getDegrees());
-        System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees() + " %%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%");
+        //System.out.println(getGyroYawRotation2d().getDegrees());
+        //System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees() + " %%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%");
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), pose);
     }
 
