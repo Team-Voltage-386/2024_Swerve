@@ -46,6 +46,9 @@ public class Robot extends TimedRobot {
         //autonomousCommand.execute();
         //m_swerve.updateOdometry();
         //m_swerve.updateOdometry(); Shouldnt need because driveWithChassisSpeeds already calls it
+        if(autonomousCommand.isFinished()) {
+            System.out.println("FINISHED AUTO! ()()()()()()()()()()()())()()()()()()()()())()()");
+        }
     } 
 
     @Override

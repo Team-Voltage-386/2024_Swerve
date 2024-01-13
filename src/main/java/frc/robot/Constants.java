@@ -28,8 +28,8 @@ public class Constants {
     }
 
     public static class Deadbands {
-        public static final double kLeftJoystickDeadband = 0.2;
-        public static final double kRightJoyStickDeadband = 0.3;
+        public static final double kLeftJoystickDeadband = 0.1;
+        public static final double kRightJoyStickDeadband = 0.1;
     }
 
     public static class DriveTrain {
@@ -47,9 +47,9 @@ public class Constants {
         public static final double kTranslationPathPlannerP = 5; //shouldnt need anything other than P
         public static final double kRotationPathPlannerP = 5;
 
-        public static final double[] turnPID = { 11.25, 0.0, 0.0 }; // p = 11.25
+        public static final double[] turnPID = { 9, 0.0, 0.0 }; // p = 11.25
         public static final double[] drivePID = { 1.0, 2.0, 0.0 }; // p = 0.825
-        public static final double[] turnFeedForward = { 0.0, 0.45 }; // was 0.46   
+        public static final double[] turnFeedForward = { 0.0, 0.46 }; // was 0.46   
         public static final double[] driveFeedForward = { 0.0, 2.35 }; // v = 3.3
     };
 
