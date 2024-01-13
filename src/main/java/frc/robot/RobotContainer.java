@@ -37,18 +37,16 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
+    // Create choices for autonomous functions in the Smart Dashboard
+    SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
     NamedCommands.registerCommand("command", Commands.print("This is a command"));
 
     // Configure the trigger bindings
     configureBindings();
-
-    // Configure the button bindings
-
-    autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
-    // Create choices for autonomous functions in the Smart Dashboard
     autoChooser.setDefaultOption("Autonomous Command", path1);
-    SmartDashboard.putData("Auto Mode", autoChooser);
+    // Configure the button bindings
   }
 
   Command path1;
@@ -63,12 +61,16 @@ public class RobotContainer {
    */
   private void configureBindings() {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
-    // SmartDashboard.putData("Example Auto", new PathPlannerAuto("Example Auto"));
-    SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
+    //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    //PathPlannerPath path = PathPlannerPath.fromPathFile("New1 Path");
     path1 = AutoBuilder.buildAuto("Auto1");
-    //SmartDashboard.putData("Example path", path1);
+    
+    try {
+    autoChooser.addOption("path", path1);
+    }
+    catch(Exception e) {
+      System.out.println(e.getMessage());
+    }
     // Add a button to run pathfinding commands to SmartDashboard
     // SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(
     //   new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), 
@@ -121,6 +123,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return path1;
+    return autoChooser.getSelected();
   }
 }

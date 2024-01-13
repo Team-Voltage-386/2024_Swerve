@@ -116,8 +116,8 @@ public class Drivetrain implements Subsystem {
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 this::driveWithChasisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                        new PIDConstants(5.5, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+                        new PIDConstants(DriveTrain.kTranslationPathPlannerP, 0.0, 0.0), // Translation PID constants
+                        new PIDConstants(DriveTrain.kRotationPathPlannerP, 0.0, 0.0), // Rotation PID constants
                         kMaxPossibleSpeed, // Max module speed, in m/s
                         DriveTrain.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
                         new ReplanningConfig() // Default path replanning config. See the API for the options here
@@ -212,6 +212,7 @@ public class Drivetrain implements Subsystem {
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
+        stopDriving(false);
     }
 
     public void driveWithChasisSpeeds(ChassisSpeeds chassisSpeeds) {
@@ -229,6 +230,7 @@ public class Drivetrain implements Subsystem {
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
         updateOdometry();
+        stopDriving(false);
     }
 
 
@@ -260,12 +262,32 @@ public class Drivetrain implements Subsystem {
         return new Pose2d(X, Y, getGyroYawRotation2d());
     }
 
+    public void stopDriving(boolean yes) {
+        if(yes) {
+                System.out.println("I AINT DRIVING");
+                SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        0,
+                        0,
+                        0,
+                        getGyroYawRotation2d()));
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
+
+        // passing back the math from kinematics to the swerves themselves.
+        m_frontLeft.setDesiredState(swerveModuleStates[0]);
+        m_frontRight.setDesiredState(swerveModuleStates[1]);
+        m_backLeft.setDesiredState(swerveModuleStates[2]);
+        m_backRight.setDesiredState(swerveModuleStates[3]);
+        }
+    }
+
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());
-
+        
         // getting velocity vectors from each module
         SwerveModuleState frontLeftState = m_frontLeft.getState();
         SwerveModuleState frontRightState = m_frontRight.getState();
