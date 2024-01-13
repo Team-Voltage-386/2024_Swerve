@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        autonomousCommand.initialize();
+        autonomousCommand.schedule();
     }
 
     @Override
@@ -43,8 +43,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
-        autonomousCommand.execute();
-        m_swerve.updateOdometry();
+        //autonomousCommand.execute();
+        //m_swerve.updateOdometry();
         //m_swerve.updateOdometry(); Shouldnt need because driveWithChassisSpeeds already calls it
     } 
 

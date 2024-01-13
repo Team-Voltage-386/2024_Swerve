@@ -118,8 +118,8 @@ public class Drivetrain implements Subsystem {
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
                         new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
                         new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-                        4.5, // Max module speed, in m/s
-                        DriveTrain.kDistanceMiddleToFrontMotor, // Drive base radius in meters. Distance from robot center to furthest module.
+                        kMaxPossibleSpeed, // Max module speed, in m/s
+                        DriveTrain.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
                         new ReplanningConfig() // Default path replanning config. See the API for the options here
                 ),
                 () -> {
@@ -146,6 +146,9 @@ public class Drivetrain implements Subsystem {
     }
 
     public void resetOdo(Pose2d pose) {
+        resetGyro();
+        System.out.println(getGyroYawRotation2d().getDegrees());
+        System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees() + " %%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%");
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), pose);
     }
 
@@ -207,7 +210,7 @@ public class Drivetrain implements Subsystem {
 
         SmartDashboard.putNumber("desired X Speed", xSpeed);
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
-        SmartDashboard.putNumber("desired Rot Speed", rotSpeed);
+        SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
     }
 
@@ -215,6 +218,10 @@ public class Drivetrain implements Subsystem {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
+
+        SmartDashboard.putNumber("desired X Speed", chassisSpeeds.vxMetersPerSecond);
+        SmartDashboard.putNumber("desired Y Speed", chassisSpeeds.vyMetersPerSecond);
+        SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(chassisSpeeds.omegaRadiansPerSecond));
 
         // passing back the math from kinematics to the swerves themselves.
         m_frontLeft.setDesiredState(swerveModuleStates[0]);
