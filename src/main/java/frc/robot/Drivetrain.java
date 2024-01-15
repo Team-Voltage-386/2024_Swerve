@@ -4,8 +4,11 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -116,8 +119,8 @@ public class Drivetrain implements Subsystem {
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 this::driveWithChasisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                        new PIDConstants(DriveTrain.kTranslationPathPlannerP, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(DriveTrain.kRotationPathPlannerP, 0.0, 0.0), // Rotation PID constants
+                        new PIDConstants(4, 0.0, 0.0), // Translation PID constants
+                        new PIDConstants(4, 0.0, 0.1), // Rotation PID constants
                         kMaxPossibleSpeed, // Max module speed, in m/s
                         DriveTrain.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
                         new ReplanningConfig() // Default path replanning config. See the API for the options here
@@ -134,7 +137,19 @@ public class Drivetrain implements Subsystem {
                 },
                 this // Reference to this subsystem to set requirements
         );
+        //PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
     }
+
+//     public Optional<Rotation2d> getRotationTargetOverride(){
+//         // Some condition that should decide if we want to override rotation
+//         if(Limelight.hasGamePieceTarget()) {
+//                 // Return an optional containing the rotation override (this should be a field relative rotation)
+//                 return Optional.of(Limelight.getRobotToGamePieceRotation());
+//         } else {
+//                 // return an empty optional when we don't want to override the path's rotation
+//                 return Optional.empty();
+//         }
+//     }
 
     public void resetGyro() {
         m_gyro.setYaw(0);
@@ -212,7 +227,6 @@ public class Drivetrain implements Subsystem {
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
-        stopDriving(false);
     }
 
     public void driveWithChasisSpeeds(ChassisSpeeds chassisSpeeds) {
@@ -230,7 +244,6 @@ public class Drivetrain implements Subsystem {
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
         updateOdometry();
-        stopDriving(false);
     }
 
 
@@ -262,15 +275,14 @@ public class Drivetrain implements Subsystem {
         return new Pose2d(X, Y, getGyroYawRotation2d());
     }
 
-    public void stopDriving(boolean yes) {
-        if(yes) {
-                System.out.println("I AINT DRIVING");
-                SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        0,
-                        0,
-                        0,
-                        getGyroYawRotation2d()));
+    public void stopDriving() {
+        System.out.println("I AINT DRIVING");
+        SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
+        ChassisSpeeds.fromFieldRelativeSpeeds(
+                0,
+                0,
+                0,
+                getGyroYawRotation2d()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
 
@@ -279,7 +291,6 @@ public class Drivetrain implements Subsystem {
         m_frontRight.setDesiredState(swerveModuleStates[1]);
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
-        }
     }
 
     /** Updates the field relative position of the robot. */

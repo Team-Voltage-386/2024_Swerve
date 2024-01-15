@@ -1,0 +1,97 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.49121744397335,
+        "y": 6.788456653836385
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.734452238135247,
+        "y": 6.778589711025576
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.5,
+        "y": 6.610851683241828
+      },
+      "prevControl": {
+        "x": 5.503090320402086,
+        "y": 6.8279151954171295
+      },
+      "nextControl": {
+        "x": 5.48777866786503,
+        "y": 5.752427658701472
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.5,
+        "y": 5.851097086809559
+      },
+      "prevControl": {
+        "x": 5.606013800532429,
+        "y": 5.845123200967501
+      },
+      "nextControl": {
+        "x": 4.974697641702977,
+        "y": 5.880697915241985
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.599753814892247,
+        "y": 5.851097086809559
+      },
+      "prevControl": {
+        "x": 5.201637326351578,
+        "y": 5.8609640296203676
+      },
+      "nextControl": {
+        "x": 4.530694494265411,
+        "y": 5.849964966799283
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.49121744397335,
+        "y": 6.788456653836385
+      },
+      "prevControl": {
+        "x": 4.50108438678416,
+        "y": 5.634024344971768
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 1.5,
+    "maxAcceleration": 10.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": null,
+  "previewStartingState": null,
+  "useDefaultConstraints": false
+}

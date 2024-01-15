@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Drivetrain;
+import frc.robot.Commands.StopDrive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -36,12 +37,12 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer() {
+  public RobotContainer(Drivetrain dt) {
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
     // Create choices for autonomous functions in the Smart Dashboard
     SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
-    NamedCommands.registerCommand("command", Commands.print("This is a command"));
+    NamedCommands.registerCommand("StopDrive", new StopDrive(dt));
 
     // Configure the trigger bindings
     configureBindings();
