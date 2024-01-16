@@ -47,8 +47,8 @@ public class Constants {
         public static final double kTranslationPathPlannerP = 5; //shouldnt need anything other than P
         public static final double kRotationPathPlannerP = 4.5;
         //ITS TUNED. NO TOUCH!
-        public static final double[] turnPID = { 7.5, 0.0, 0.0 }; // p = 11.25
-        public static final double[] drivePID = { 0.0, 0.0, 0.0 }; // { 1.0, 2.0, 0.0 };
+        public static final double[] turnPID = { 5, 1.0, 0.0 }; // p = 11.25
+        public static final double[] drivePID = { 0.1, 1.5, 0.0 }; // { 1.0, 2.0, 0.0 };
         public static final double[] turnFeedForward = { 0.0, 0.45 }; // was 0.46   
         public static final double[] driveFeedForward = { 0.0, 2.75 }; // { 0.0, 2.35 };
     };
@@ -69,7 +69,7 @@ public class Constants {
         public static final double kRateLimitXSpeed = 100.0;
         public static final double kRateLimitYSpeed = 100.0;
         public static final double kRateLimitRot = 100.0;
-        public static final double kMaxNecessarySpeed = Drivetrain.kMaxPossibleSpeed * 0.75;
+        public static final double kMaxNecessarySpeed = Drivetrain.kMaxPossibleSpeed * 0.6;
     }
 
     public static class Offsets {

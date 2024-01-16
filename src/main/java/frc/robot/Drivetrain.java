@@ -31,7 +31,7 @@ import frc.robot.Constants.DriveTrain;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain implements Subsystem {
-    public static final double kMaxPossibleSpeed = 4.5; // meters per second
+    public static final double kMaxPossibleSpeed = 4.9; // meters per second
     public static final double kMaxAngularSpeed = 3 * Math.PI; // per second
 
     private final Translation2d m_frontLeftLocation = new Translation2d(
@@ -119,8 +119,8 @@ public class Drivetrain implements Subsystem {
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 this::driveWithChasisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                        new PIDConstants(4, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(4, 0.0, 0.1), // Rotation PID constants
+                        new PIDConstants(7, 0.0, 0.0), // Translation PID constants
+                        new PIDConstants(5.4, 0.0, 0.0), // Rotation PID constants
                         kMaxPossibleSpeed, // Max module speed, in m/s
                         DriveTrain.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
                         new ReplanningConfig() // Default path replanning config. See the API for the options here
@@ -233,7 +233,7 @@ public class Drivetrain implements Subsystem {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
-
+        ;
         SmartDashboard.putNumber("desired X Speed", chassisSpeeds.vxMetersPerSecond);
         SmartDashboard.putNumber("desired Y Speed", chassisSpeeds.vyMetersPerSecond);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(chassisSpeeds.omegaRadiansPerSecond));
