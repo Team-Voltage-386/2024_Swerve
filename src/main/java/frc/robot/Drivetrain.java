@@ -148,7 +148,7 @@ public class Drivetrain implements Subsystem {
 
     public Optional<Rotation2d> getRotationTargetOverride(){
         // Some condition that should decide if we want to override rotation
-        if(LimelightHelpers.getFiducialID("") == 13) {
+        if(hasTarget()) {
                 // Return an optional containing the rotation override (this should be a field relative rotation)
                 return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
         } else {
@@ -159,7 +159,25 @@ public class Drivetrain implements Subsystem {
 
     /**in degrees */
     public double getRobotRotToTarg() {
+        double targRot;
+        if(hasTarget())
         return MathUtil.inputModulus(-m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
+        else
+        return 0;
+    }
+
+    private double targetID; //conv to string.
+
+    public void setTarget(double targetID) {
+        this.targetID = targetID;
+    }
+
+    public double getTarget() {
+        return this.targetID;
+    }
+
+    public boolean hasTarget() {
+        return LimelightHelpers.getFiducialID("") == getTarget();
     }
 
     public void resetGyro() {
@@ -255,16 +273,23 @@ public class Drivetrain implements Subsystem {
         updateOdometry();
     }
 
-    PIDController pieceLockPID = new PIDController(0.05, 0, 0);
-    public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative) {
+    PIDController pieceLockPID = new PIDController(0.05, 0, 0); //todo tune perfectly.
+    public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(LimelightHelpers.getFiducialID("") == 13) {
+        if(hasTarget()) {
                 rotSpeed = -pieceLockPID.calculate(getGyroYawRotation2d().getDegrees(), getRobotRotToTarg());
-                swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                        ChassisSpeeds.fromFieldRelativeSpeeds(
-                                xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
-                        )
-                );
+                if(hardLocked) {
+                        swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                                new ChassisSpeeds(xSpeed, 0, rotSpeed)
+                        );
+                }
+                else {
+                        swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                                ChassisSpeeds.fromFieldRelativeSpeeds(
+                                        xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
+                                )
+                        ); 
+                }
         }
         else {
                 swerveModuleStates = m_kinematics.toSwerveModuleStates(

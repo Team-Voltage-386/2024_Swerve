@@ -90,8 +90,11 @@ public class Robot extends TimedRobot {
                 .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
                 * Drivetrain.kMaxAngularSpeed;
 
-        if(m_controller.getLeftBumper()){ 
-            m_swerve.lockPiece(xSpeed, ySpeed);
+        if(m_controller.getLeftBumper()){
+            if(m_controller.getLeftTriggerAxis() > 0.25)
+                m_swerve.lockPiece(xSpeed, ySpeed, rot, fieldRelative, true);
+            else
+                m_swerve.lockPiece(xSpeed, ySpeed, rot, fieldRelative, false);
         }
         else{
             m_swerve.drive(xSpeed, ySpeed, rot, fieldRelative);
