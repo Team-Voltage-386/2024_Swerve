@@ -64,7 +64,7 @@ public class RobotContainer {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
     //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    path1 = AutoBuilder.buildAuto("Auto1");
+    path1 = AutoBuilder.buildAuto("Vision Test");
     
     try {
     autoChooser.addOption("path", path1);

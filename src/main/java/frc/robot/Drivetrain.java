@@ -13,6 +13,8 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants.ID;
 import frc.robot.Constants.Offsets;
+import frc.robot.Utils.LimelightHelpers;
 import frc.robot.Constants.DriveTrain;
 
 /** Represents a swerve drive style drivetrain. */
@@ -110,6 +113,7 @@ public class Drivetrain implements Subsystem {
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
+        //m_gyro.
         this.resetGyro();
 
         // Configure AutoBuilder last
@@ -137,31 +141,36 @@ public class Drivetrain implements Subsystem {
                 },
                 this // Reference to this subsystem to set requirements
         );
-        //PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
+        PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
     }
 
-//     public Optional<Rotation2d> getRotationTargetOverride(){
-//         // Some condition that should decide if we want to override rotation
-//         if(Limelight.hasGamePieceTarget()) {
-//                 // Return an optional containing the rotation override (this should be a field relative rotation)
-//                 return Optional.of(Limelight.getRobotToGamePieceRotation());
-//         } else {
-//                 // return an empty optional when we don't want to override the path's rotation
-//                 return Optional.empty();
-//         }
-//     }
+
+
+    public Optional<Rotation2d> getRotationTargetOverride(){
+        // Some condition that should decide if we want to override rotation
+        if(LimelightHelpers.getFiducialID("") == 13) {
+                // Return an optional containing the rotation override (this should be a field relative rotation)
+                return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
+        } else {
+                // return an empty optional when we don't want to override the path's rotation
+                return Optional.empty();
+        }
+    }
+
+    /**in degrees */
+    public double getRobotRotToTarg() {
+        return MathUtil.inputModulus(-m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
+    }
 
     public void resetGyro() {
         m_gyro.setYaw(0);
     }
 
     public void resetOdo() {
-        resetGyro();
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), robotFieldPosition);
     }
 
     public void resetOdo(Pose2d pose) {
-        resetGyro();
         //System.out.println(getGyroYawRotation2d().getDegrees());
         //System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees() + " %%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%");
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), pose);
@@ -196,7 +205,7 @@ public class Drivetrain implements Subsystem {
      * @return chasis angle in Rotation2d
      */
     public Rotation2d getGyroYawRotation2d() {
-        return new Rotation2d(Units.degreesToRadians(m_gyro.getYaw()));
+        return Rotation2d.fromDegrees(MathUtil.inputModulus(-m_gyro.getYaw(), -180, 180));
     }
 
     /**
@@ -246,6 +255,39 @@ public class Drivetrain implements Subsystem {
         updateOdometry();
     }
 
+    PIDController pieceLockPID = new PIDController(0.05, 0, 0);
+    public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative) {
+        SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
+        if(LimelightHelpers.getFiducialID("") == 13) {
+                rotSpeed = -pieceLockPID.calculate(getGyroYawRotation2d().getDegrees(), getRobotRotToTarg());
+                swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                        ChassisSpeeds.fromFieldRelativeSpeeds(
+                                xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
+                        )
+                );
+        }
+        else {
+                swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                fieldRelative
+                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed,
+                                getGyroYawRotation2d())
+                        : new ChassisSpeeds(xSpeed, ySpeed, rotSpeed));
+        }
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
+
+        // passing back the math from kinematics to the swerves themselves.
+        m_frontLeft.setDesiredState(swerveModuleStates[0]);
+        m_frontRight.setDesiredState(swerveModuleStates[1]);
+        m_backLeft.setDesiredState(swerveModuleStates[2]);
+        m_backRight.setDesiredState(swerveModuleStates[3]);
+
+        SmartDashboard.putNumber("desired X Speed", xSpeed);
+        SmartDashboard.putNumber("desired Y Speed", ySpeed);
+        SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
+        updateOdometry();
+    }
+
 
     public Pose2d getRoboPose2d() {
         return m_odometry.getPoseMeters();
@@ -264,7 +306,7 @@ public class Drivetrain implements Subsystem {
         double a1 = angle1; //angle (from the camera) of the close april tag (a1) and the far april tag (a2)
         double a2 = angle2;
         double gyroOffset = 0;
-        double roboAngle = m_gyro.getYaw() + gyroOffset; //angle of the robot (0 degrees = facing the drivers)
+        double roboAngle = -m_gyro.getYaw() + gyroOffset; //angle of the robot (0 degrees = facing the drivers)
 
         double X = (L * Math.sin(Math.toRadians(90 + roboAngle + a2)) * Math.sin(Math.toRadians(90 - roboAngle - a1)))
                         /Math.sin(Math.toRadians(Math.abs(a2 - a1)));
@@ -295,6 +337,9 @@ public class Drivetrain implements Subsystem {
 
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
+        SmartDashboard.putNumber("Desired Angle", getRobotRotToTarg());
+        SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
+        SmartDashboard.putNumber("WTF the gyro is", getGyroYawRotation2d().getDegrees());
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());

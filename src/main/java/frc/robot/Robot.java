@@ -90,10 +90,16 @@ public class Robot extends TimedRobot {
                 .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
                 * Drivetrain.kMaxAngularSpeed;
 
-        m_swerve.drive(xSpeed, ySpeed, rot, fieldRelative);
+        if(m_controller.getLeftBumper()){ 
+            m_swerve.lockPiece(xSpeed, ySpeed);
+        }
+        else{
+            m_swerve.drive(xSpeed, ySpeed, rot, fieldRelative);
+        }
 
         if (m_controller.getRightBumperPressed()) {
             m_swerve.resetOdo();
+            m_swerve.resetGyro();
         }
     }
 }
