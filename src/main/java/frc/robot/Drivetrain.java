@@ -159,7 +159,6 @@ public class Drivetrain implements Subsystem {
 
     /**in degrees */
     public double getRobotRotToTarg() {
-        double targRot;
         if(hasTarget())
         return MathUtil.inputModulus(-m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
         else
