@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.Deadbands;
+import frc.robot.Commands.Drive;
 import frc.robot.Constants.Controller;
 
 public class Robot extends TimedRobot {
@@ -25,10 +26,12 @@ public class Robot extends TimedRobot {
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(Controller.kRateLimitRot);
 
     private Command autonomousCommand;
+    private Command driveCommand; //todo
 
     @Override
     public void robotInit() {
         autonomousCommand = m_containter.getAutonomousCommand();
+        driveCommand = new Drive(m_swerve, xSpeed, ySpeed, rot, true);
     }
 
     @Override
@@ -39,21 +42,22 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         autonomousCommand.cancel();
+        m_swerve.setDefaultCommand(driveCommand);
     }
 
     @Override
     public void autonomousPeriodic() {
-        //autonomousCommand.execute();
-        //m_swerve.updateOdometry();
-        //m_swerve.updateOdometry(); Shouldnt need because driveWithChassisSpeeds already calls it
         if(autonomousCommand.isFinished()) {
-            System.out.println("FINISHED AUTO! ()()()()()()()()()()()())()()()()()()()()())()()");
+            System.out.println("FINISHED AUTO!");
         }
     } 
 
     @Override
     public void teleopPeriodic() {
-        driveWithJoystick(true);
+        if(m_controller.getAButtonPressed())
+                m_containter.pathfindAmp().schedule();
+            else
+                readControllers(true);
     }
 
     @Override
@@ -68,17 +72,21 @@ public class Robot extends TimedRobot {
         //m_swerve.print();
     }
 
-    private void driveWithJoystick(boolean fieldRelative) {
+    double xSpeed;
+    double ySpeed;
+    double rot;
+
+    private void readControllers(boolean fieldRelative) {
         // Get the x speed. We are inverting this because Xbox controllers return
         // negative values when we push forward.
-        final var xSpeed = -m_xspeedLimiter
+        xSpeed = -m_xspeedLimiter
                 .calculate(MathUtil.applyDeadband(m_controller.getLeftY(), Deadbands.kLeftJoystickDeadband))
                 * Constants.Controller.kMaxNecessarySpeed;
 
         // Get the y speed or sideways/strafe speed. We are inverting this because
         // we want a positive value when we pull to the left. Xbox controllers
         // return positive values when you pull to the right by default.
-        final var ySpeed = -m_yspeedLimiter
+        ySpeed = -m_yspeedLimiter
                 .calculate(MathUtil.applyDeadband(m_controller.getLeftX(), Deadbands.kLeftJoystickDeadband))
                 * Constants.Controller.kMaxNecessarySpeed;
 
@@ -86,7 +94,7 @@ public class Robot extends TimedRobot {
         // positive value when we pull to the left (remember, CCW is positive in
         // mathematics). Xbox controllers return positive values when you pull to
         // the right by default.
-        final var rot = -m_rotLimiter
+        rot = -m_rotLimiter
                 .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
                 * Drivetrain.kMaxAngularSpeed;
 

@@ -159,10 +159,7 @@ public class Drivetrain implements Subsystem {
 
     /**in degrees */
     public double getRobotRotToTarg() {
-        if(hasTarget())
         return MathUtil.inputModulus(-m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
-        else
-        return 0;
     }
 
     private double targetID; //conv to string.
@@ -179,17 +176,27 @@ public class Drivetrain implements Subsystem {
         return LimelightHelpers.getFiducialID("") == getTarget();
     }
 
+    /**
+     * Resets Orientation of the robot
+     */
     public void resetGyro() {
         m_gyro.setYaw(0);
     }
 
+    /**
+     * Resets robot position on the field
+     */
     public void resetOdo() {
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), robotFieldPosition);
     }
 
+    /**
+     * Resets Odometry using a specific Pose2d
+     * @param pose
+     */
     public void resetOdo(Pose2d pose) {
         //System.out.println(getGyroYawRotation2d().getDegrees());
-        //System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees() + " %%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%");
+        //System.out.println(pose.getX() + " " + pose.getY() + " " + pose.getRotation().getDegrees());
         m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), pose);
     }
 
@@ -197,6 +204,10 @@ public class Drivetrain implements Subsystem {
         return m_chassisSpeeds;
     }
 
+    /**
+     * Module positions in the form of SwerveModulePositions (Module orientation and the distance the wheel has travelled across the ground)
+     * @return SwerveModulePosition[]
+     */
     public SwerveModulePosition[] getModulePositions() {
         return new SwerveModulePosition[] {
                 m_frontLeft.getPosition(),
@@ -254,7 +265,10 @@ public class Drivetrain implements Subsystem {
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
     }
-
+    /**
+     * Pathplanner uses this method in order to interface with our Drivetrain.
+     * @param chassisSpeeds Robot relative ChassisSpeeds of the robot containing X, Y, and Rotational Velocities.
+     */
     public void driveWithChasisSpeeds(ChassisSpeeds chassisSpeeds) {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
 
@@ -272,7 +286,17 @@ public class Drivetrain implements Subsystem {
         updateOdometry();
     }
 
+    /**
+     * PID for AimLock 
+     */
     PIDController pieceLockPID = new PIDController(0.05, 0, 0); //todo tune perfectly.
+    /**
+     * What this code essentially does is when you're holding down the left button (in robot), just drive like normal until you see a game piece. 
+     * once you see it, its locked. from this point, you may drive around as normal, but the aimlock will handle the robot's orientation. 
+     * If you then press the left trigger (in robot), the robot will "hard lock" onto the piece, and you will only be able
+     *  to go forwards and backwards (robot oriented), in order to perfectly pick up the piece.
+     *  With proper tuning it will be able to lock, and stay locked onto the tag/piece no matter how fast we are driving. 
+     */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
         if(hasTarget()) {

@@ -51,6 +51,7 @@ public class RobotContainer {
   }
 
   Command path1;
+  Command pathfindAmp;
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -72,50 +73,21 @@ public class RobotContainer {
     catch(Exception e) {
       System.out.println(e.getMessage());
     }
-    // Add a button to run pathfinding commands to SmartDashboard
-    // SmartDashboard.putData("Pathfind to Pickup Pos", AutoBuilder.pathfindToPose(
-    //   new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), 
-    //   new PathConstraints(
-    //     4.0, 4.0, 
-    //     Units.degreesToRadians(360), Units.degreesToRadians(540)
-    //   ), 
-    //   0, 
-    //   2.0
-    // ));
-    // SmartDashboard.putData("Pathfind to Scoring Pos", AutoBuilder.pathfindToPose(
-    //   new Pose2d(2.15, 3.0, Rotation2d.fromDegrees(180)), 
-    //   new PathConstraints(
-    //     4.0, 4.0, 
-    //     Units.degreesToRadians(360), Units.degreesToRadians(540)
-    //   ), 
-    //   0, 
-    //   0
-    // )); <-- SPAM shit from last year
 
-    // Add a button to SmartDashboard that will create and follow an on-the-fly path
-    // This example will simply move the robot 2m in the +X field direction
-    // SmartDashboard.putData("On-the-fly path", Commands.runOnce(() -> {
-    //   Pose2d currentPose = swerve.getRoboPose2d();
-      
-    //   // The rotation component in these poses represents the direction of travel
-    //   Pose2d startPos = new Pose2d(currentPose.getTranslation(), new Rotation2d());
-    //   Pose2d endPos = new Pose2d(currentPose.getTranslation().plus(new Translation2d(2.0, 0.0)), new Rotation2d());
+    // Load the path we want to pathfind to and follow
+    PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
 
-    //   List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(startPos, endPos);
-    //   PathPlannerPath path = new PathPlannerPath(
-    //     bezierPoints, 
-    //     new PathConstraints(
-    //       4.0, 4.0, 
-    //       Units.degreesToRadians(360), Units.degreesToRadians(540)
-    //     ),  
-    //     new GoalEndState(0.0, currentPose.getRotation())
-    //   );
+    // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
+    PathConstraints constraints = new PathConstraints(
+      2.25, 4.0,
+      Units.degreesToRadians(540), Units.degreesToRadians(720));
 
-    //   // Prevent this path from being flipped on the red alliance, since the given positions are already correct
-    //   path.preventFlipping = true;
-
-    //   AutoBuilder.followPath(path).schedule();
-    // })); <-- on the fly path. todo
+    // Since AutoBuilder is configured, we can use it to build pathfinding commands
+    pathfindAmp = AutoBuilder.pathfindThenFollowPath(
+      path,
+      constraints,
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    );
   }
 
   /**
@@ -125,5 +97,12 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.getSelected();
+  }
+
+  /**
+   * Pathfind to the Amp
+   */
+  public Command pathfindAmp() {
+    return pathfindAmp;
   }
 }

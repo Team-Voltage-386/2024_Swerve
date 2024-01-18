@@ -21,7 +21,6 @@ public class StopDrive extends Command {
     public void execute() {
         m_word.refresh();
         dt.stopDriving();
-        
     }
 
     @Override
