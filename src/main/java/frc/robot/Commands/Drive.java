@@ -1,19 +1,24 @@
 package frc.robot.Commands;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Drivetrain;
 
 public class Drive extends Command {
     Drivetrain dt;
-    double xVelo, yVelo, rotVelo;
-    boolean fieldRelative;
+    Supplier<Double> xVeloSupplier, yVeloSupplier, rotVeloSupplier;
+    Supplier<Boolean> fieldRelativeSupplier;
 
-    public Drive(Drivetrain dt, double xVelo, double yVelo, double rotVelo, boolean fieldRelative) {
+    public Drive(Drivetrain dt,
+            Supplier<Double> xVeloSupplier, Supplier<Double> yVeloSupplier, Supplier<Double> rotVeloSupplier,
+            Supplier<Boolean> fieldRelativeSupplier) {
         this.dt = dt;
-        this.xVelo = xVelo;
-        this.yVelo = yVelo;
-        this.rotVelo = rotVelo;
-        this.fieldRelative = fieldRelative;
+        this.xVeloSupplier = xVeloSupplier;
+        this.yVeloSupplier = yVeloSupplier;
+        this.rotVeloSupplier = rotVeloSupplier;
+        this.fieldRelativeSupplier = fieldRelativeSupplier;
+        addRequirements(dt);
     }
 
     public void schedule() {
@@ -22,8 +27,7 @@ public class Drive extends Command {
     
     @Override
     public void execute() {
-        dt.drive(xVelo, yVelo, rotVelo, fieldRelative);
-        
+        dt.drive(xVeloSupplier.get(), yVeloSupplier.get(), rotVeloSupplier.get(), fieldRelativeSupplier.get());
     }
 
     @Override
