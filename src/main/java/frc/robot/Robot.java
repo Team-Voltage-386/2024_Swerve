@@ -55,30 +55,5 @@ public class Robot extends TimedRobot {
         //m_swerve.print();
     }
 
-    // double xSpeed;
-    // double ySpeed;
-    // double rot;
-
-    // private void readControllers(boolean fieldRelative) {
-    //     // Get the x speed. We are inverting this because Xbox controllers return
-    //     // negative values when we push forward.
-    //     xSpeed = -m_xspeedLimiter
-    //             .calculate(MathUtil.applyDeadband(m_controller.getLeftY(), Deadbands.kLeftJoystickDeadband))
-    //             * Constants.Controller.kMaxNecessarySpeed;
-
-    //     // Get the y speed or sideways/strafe speed. We are inverting this because
-    //     // we want a positive value when we pull to the left. Xbox controllers
-    //     // return positive values when you pull to the right by default.
-    //     ySpeed = -m_yspeedLimiter
-    //             .calculate(MathUtil.applyDeadband(m_controller.getLeftX(), Deadbands.kLeftJoystickDeadband))
-    //             * Constants.Controller.kMaxNecessarySpeed;
-
-    //     // Get the rate of angular rotation. We are inverting this because we want a
-    //     // positive value when we pull to the left (remember, CCW is positive in
-    //     // mathematics). Xbox controllers return positive values when you pull to
-    //     // the right by default.
-    //     rot = -m_rotLimiter
-    //             .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
-    //             * Drivetrain.kMaxAngularSpeed;
-    // }
+    
 }

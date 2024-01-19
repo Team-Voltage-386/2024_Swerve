@@ -265,6 +265,7 @@ public class Drivetrain implements Subsystem {
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
     }
+    
     /**
      * Pathplanner uses this method in order to interface with our Drivetrain.
      * @param chassisSpeeds Robot relative ChassisSpeeds of the robot containing X, Y, and Rotational Velocities.

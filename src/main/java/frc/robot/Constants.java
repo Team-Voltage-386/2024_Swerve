@@ -48,9 +48,9 @@ public class Constants {
         public static final double kRotationPathPlannerP = 4.5;
         //ITS TUNED. NO TOUCH!
         public static final double[] turnPID = { 5, 1.0, 0.0 }; // p = 11.25
-        public static final double[] drivePID = { 0.1, 1.5, 0.0 }; // { 1.0, 2.0, 0.0 };
+        public static final double[] drivePID = { 0.6, 0.1, 0.1 }; // { 0.1, 1.5, 0.0 };
         public static final double[] turnFeedForward = { 0.0, 0.45 }; // was 0.46   
-        public static final double[] driveFeedForward = { 0.0, 2.75 }; // { 0.0, 2.35 };
+        public static final double[] driveFeedForward = { 0.0, 2.74 }; // { 0.0, 2.75 };
     };
 
     public static final class Modules {

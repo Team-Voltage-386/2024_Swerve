@@ -37,34 +37,13 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
   private final XboxController m_controller = new XboxController(Controller.kDriveController);
-    private final Drivetrain m_swerve = new Drivetrain();
-    private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(Controller.kRateLimitXSpeed);
-    private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(Controller.kRateLimitYSpeed);
-    private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(Controller.kRateLimitRot);
+    public final Drivetrain m_swerve = new Drivetrain();
     Command driveCommand;
-
-    Supplier<Double> xVeloSupplier, yVeloSupplier, rotVeloSupplier;
-    Supplier<Boolean> fieldRelativeSupplier;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    xVeloSupplier = () -> -m_xspeedLimiter
-                .calculate(MathUtil.applyDeadband(m_controller.getLeftY(), Deadbands.kLeftJoystickDeadband))
-                * Constants.Controller.kMaxNecessarySpeed;
-    yVeloSupplier = () -> -m_yspeedLimiter
-                .calculate(MathUtil.applyDeadband(m_controller.getLeftX(), Deadbands.kLeftJoystickDeadband))
-                * Constants.Controller.kMaxNecessarySpeed;
-    rotVeloSupplier = () -> -m_rotLimiter
-                .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
-                * Drivetrain.kMaxAngularSpeed;
     // Xbox controllers return negative values when we push forward.   
-    driveCommand = new Drive(
-      m_swerve,
-      xVeloSupplier,
-      yVeloSupplier,
-      rotVeloSupplier,
-      () -> m_controller.getAButton()
-    );
+    driveCommand = new Drive(m_swerve);
 
     m_swerve.setDefaultCommand(driveCommand);
     
@@ -91,7 +70,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    new Trigger(m_controller::getLeftBumperPressed).onTrue(new lockTarget(m_swerve, xVeloSupplier, yVeloSupplier, rotVeloSupplier, fieldRelativeSupplier,  () -> m_controller.getLeftTriggerAxis() > 0.25));
+    new Trigger(m_controller::getLeftBumperPressed).onTrue(new lockTarget(m_swerve));
     new Trigger(m_controller::getRightBumperPressed).onTrue((new resetOdo(m_swerve)));
     new Trigger(m_controller::getAButtonPressed).onTrue(pathfindAmp);
   }
