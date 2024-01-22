@@ -70,9 +70,10 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    new Trigger(m_controller::getLeftBumperPressed).onTrue(new lockTarget(m_swerve));
+    Command lock = new lockTarget(m_swerve);
+    new Trigger(m_controller::getLeftBumper).onTrue(lock);
     new Trigger(m_controller::getRightBumperPressed).onTrue((new resetOdo(m_swerve)));
-    new Trigger(m_controller::getAButtonPressed).onTrue(pathfindAmp);
+    //new Trigger(m_controller::getAButtonPressed).whileTrue(pathfindAmp);
   }
 
   Command path1;
@@ -81,7 +82,7 @@ public class RobotContainer {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
     //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    path1 = AutoBuilder.buildAuto("Vision Test");
+    path1 = AutoBuilder.buildAuto("karltest");
     autoChooser.addOption("path", path1);
     // Load the path we want to pathfind to and follow
     PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
@@ -103,7 +104,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    return path1;
   }
 
   public Command getTeleOpCommand() {

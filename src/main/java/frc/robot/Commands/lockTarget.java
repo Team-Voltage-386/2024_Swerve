@@ -21,7 +21,8 @@ public class lockTarget extends Command {
         addRequirements(dt);
     }
 
-    public void schedule() {
+    @Override
+    public void initialize() {
         System.out.println("Locking piece.");
     }
 
@@ -54,12 +55,13 @@ public class lockTarget extends Command {
     
     @Override
     public void execute() {
+        System.out.println("lpocked");
         readControllers();
         dt.lockPiece(xSpeed, ySpeed, rotSpeed, !m_controller.getAButton(), m_controller.getLeftTriggerAxis() > 0.25);
     }
 
     @Override
     public boolean isFinished() {
-        return false;
+        return m_controller.getLeftBumperReleased();
     }
 }

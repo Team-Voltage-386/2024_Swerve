@@ -141,34 +141,34 @@ public class Drivetrain implements Subsystem {
                 },
                 this // Reference to this subsystem to set requirements
         );
-        PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
+        //PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
     }
 
 
 
-    public Optional<Rotation2d> getRotationTargetOverride(){
-        // Some condition that should decide if we want to override rotation
-        if(hasTarget()) {
-                // Return an optional containing the rotation override (this should be a field relative rotation)
-                return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
-        } else {
-                // return an empty optional when we don't want to override the path's rotation
-                return Optional.empty();
-        }
-    }
+//     public Optional<Rotation2d> getRotationTargetOverride(){
+//         // Some condition that should decide if we want to override rotation
+//         if(hasTarget()) {
+//                 // Return an optional containing the rotation override (this should be a field relative rotation)
+//                 return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
+//         } else {
+//                 // return an empty optional when we don't want to override the path's rotation
+//                 return Optional.empty();
+//         }
+//     }
 
     /**in degrees */
     public double getRobotRotToTarg() {
-        return MathUtil.inputModulus(-m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
+        return MathUtil.inputModulus(m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
     }
 
-    private double targetID; //conv to string.
+    private int targetID = 1;
 
-    public void setTarget(double targetID) {
+    public void setTarget(int targetID) {
         this.targetID = targetID;
     }
 
-    public double getTarget() {
+    public int getTarget() {
         return this.targetID;
     }
 
@@ -233,7 +233,7 @@ public class Drivetrain implements Subsystem {
      * @return chasis angle in Rotation2d
      */
     public Rotation2d getGyroYawRotation2d() {
-        return Rotation2d.fromDegrees(MathUtil.inputModulus(-m_gyro.getYaw(), -180, 180));
+        return Rotation2d.fromDegrees(MathUtil.inputModulus(m_gyro.getYaw(), -180, 180));
     }
 
     /**
@@ -290,7 +290,7 @@ public class Drivetrain implements Subsystem {
     /**
      * PID for AimLock 
      */
-    PIDController pieceLockPID = new PIDController(0.05, 0, 0); //todo tune perfectly.
+    PIDController pieceLockPID = new PIDController(0.15, 0, 0); //todo tune perfectly.
     /**
      * What this code essentially does is when you're holding down the left button (in robot), just drive like normal until you see a game piece. 
      * once you see it, its locked. from this point, you may drive around as normal, but the aimlock will handle the robot's orientation. 
