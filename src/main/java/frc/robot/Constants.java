@@ -29,8 +29,8 @@ public class Constants {
     }
 
     public static class Deadbands {
-        public static final double kLeftJoystickDeadband = 0.02;
-        public static final double kRightJoyStickDeadband = 0.02;
+        public static final double kLeftJoystickDeadband = 0.1;
+        public static final double kRightJoyStickDeadband = 0.1;
     }
 
     public static class DriveTrain {

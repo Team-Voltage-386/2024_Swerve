@@ -78,7 +78,7 @@ public class RobotContainer {
     Command lock = new lockTarget(m_swerve);
     m_controller.leftBumper().onTrue(lock);
    m_controller.rightBumper().onTrue((new resetOdo(m_swerve)));
-    //new Trigger(m_controller::getXButtonPressed).whileTrue(pathfindAmp);
+    m_controller.x().whileTrue(pathfindAmp);
     /*
          * Y = forward camera
          * A = back camera
@@ -89,7 +89,7 @@ public class RobotContainer {
         m_controller.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.BACKWARD)));
         m_controller.povUp().toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
-    
+
   }
 
   Command path1;
@@ -104,7 +104,7 @@ public class RobotContainer {
     PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
     // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
     PathConstraints constraints = new PathConstraints(
-      2.25, 4.0,
+      1, 3.0,
       Units.degreesToRadians(540), Units.degreesToRadians(720));
     // Since AutoBuilder is configured, we can use it to build pathfinding commands
     pathfindAmp = AutoBuilder.pathfindThenFollowPath(
