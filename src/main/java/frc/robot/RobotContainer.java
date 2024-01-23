@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Controller;
@@ -57,6 +58,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
     NamedCommands.registerCommand("StopDrive", new StopDrive(m_swerve));
+    NamedCommands.registerCommand("lock target", Commands.runOnce(()-> m_swerve.toggleLockTargetInAuto(), m_swerve));
 
     // Configure the trigger bindings
     pathPlannerStuff();
@@ -88,8 +90,7 @@ public class RobotContainer {
         m_controller.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
         m_controller.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.BACKWARD)));
-        m_controller.povUp().toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
-
+        m_controller.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
   }
 
   Command path1;

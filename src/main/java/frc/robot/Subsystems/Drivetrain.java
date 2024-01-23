@@ -23,14 +23,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
 import frc.robot.Constants.Offsets;
@@ -117,6 +115,7 @@ public class Drivetrain extends SubsystemBase {
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
+    private boolean lockTargetInAuto = false;
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
@@ -162,23 +161,30 @@ public class Drivetrain extends SubsystemBase {
                 },
                 this // Reference to this subsystem to set requirements
         );
-        //PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
+        if(lockTargetInAuto)
+            PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
+        else
+            PPHolonomicDriveController.setRotationTargetOverride(()-> Optional.empty());
     }
 
+    /**
+     * Returns the rotation2d the robot must face to be pointed at the target. pass this to PPHolonomicDriveController
+     * @return
+     */
+    public Optional<Rotation2d> getRotationTargetOverride(){
+        // Some condition that should decide if we want to override rotation
+        if(hasTarget()) {
+                // Return an optional containing the rotation override (this should be a field relative rotation)
+                return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
+        } else {
+                // return an empty optional when we don't want to override the path's rotation
+                return Optional.empty();
+        }
+    }
 
-
-//     public Optional<Rotation2d> getRotationTargetOverride(){
-//         // Some condition that should decide if we want to override rotation
-//         if(hasTarget()) {
-//                 // Return an optional containing the rotation override (this should be a field relative rotation)
-//                 return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
-//         } else {
-//                 // return an empty optional when we don't want to override the path's rotation
-//                 return Optional.empty();
-//         }
-//     }
-
-    /**in degrees */
+    /**
+     * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
+     */
     public double getRobotRotToTarg() {
         return MathUtil.inputModulus(m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
     }
@@ -195,6 +201,10 @@ public class Drivetrain extends SubsystemBase {
 
     public boolean hasTarget() {
         return LimelightHelpers.getFiducialID("") == getTarget();
+    }
+
+    public void toggleLockTargetInAuto() {
+        lockTargetInAuto = !lockTargetInAuto;
     }
 
     /**
