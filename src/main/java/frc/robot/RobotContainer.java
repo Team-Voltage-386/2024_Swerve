@@ -22,6 +22,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Controller;
 import frc.robot.Constants.Deadbands;
+import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
+import frc.robot.Subsystems.CameraSubsystem;
+import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Commands.Drive;
 import frc.robot.Commands.StopDrive;
 import frc.robot.Commands.lockTarget;
@@ -36,8 +39,10 @@ import frc.robot.Commands.resetOdo;
 public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
-  private final XboxController m_controller = new XboxController(Controller.kDriveController);
+  private final XboxController m_badcontroller = new XboxController(Controller.kDriveController);
+  private final CommandXboxController m_controller = new CommandXboxController(Controller.kDriveController);
     public final Drivetrain m_swerve = new Drivetrain();
+  private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
     Command driveCommand;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -71,9 +76,20 @@ public class RobotContainer {
    */
   private void configureBindings() {
     Command lock = new lockTarget(m_swerve);
-    new Trigger(m_controller::getLeftBumper).onTrue(lock);
-    new Trigger(m_controller::getRightBumperPressed).onTrue((new resetOdo(m_swerve)));
-    //new Trigger(m_controller::getAButtonPressed).whileTrue(pathfindAmp);
+    m_controller.leftBumper().onTrue(lock);
+   m_controller.rightBumper().onTrue((new resetOdo(m_swerve)));
+    //new Trigger(m_controller::getXButtonPressed).whileTrue(pathfindAmp);
+    /*
+         * Y = forward camera
+         * A = back camera
+         */
+        m_controller.y().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.USB_CAMERA)
+                .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.FORWARD)));
+        m_controller.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
+        m_controller.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
+                .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.BACKWARD)));
+        m_controller.povUp().toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
+    
   }
 
   Command path1;
@@ -82,7 +98,7 @@ public class RobotContainer {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
     //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    path1 = AutoBuilder.buildAuto("karltest");
+    path1 = AutoBuilder.buildAuto("Vision Test");
     autoChooser.addOption("path", path1);
     // Load the path we want to pathfind to and follow
     PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");

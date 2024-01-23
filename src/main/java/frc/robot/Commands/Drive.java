@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.Deadbands;
-import frc.robot.Drivetrain;
+import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Constants.Controller;
 
 public class Drive extends Command {
@@ -52,13 +52,26 @@ public class Drive extends Command {
         rotSpeed = -m_rotLimiter
                 .calculate(MathUtil.applyDeadband(m_controller.getRightX(), Deadbands.kRightJoyStickDeadband))
                 * Drivetrain.kMaxAngularSpeed;
+
+        if (!dt.getFieldRelative()) {
+            switch (dt.getDirectionOption()) {
+                case BACKWARD: {
+                    xSpeed *= -1;
+                    ySpeed *= -1;
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
     }
     
     @Override
     public void execute() {
         readControllers();
         //dt.drive(xSpeed, ySpeed, rotSpeed, !m_controller.getAButton());
-        dt.drive(xSpeed, ySpeed, rotSpeed, true);
+        dt.drive(xSpeed, ySpeed, rotSpeed);
     }
 
     @Override

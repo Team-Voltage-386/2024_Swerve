@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot;
+package frc.robot.Subsystems;
 
 import java.util.Optional;
 
@@ -25,15 +25,25 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
 import frc.robot.Constants.Offsets;
 import frc.robot.Utils.LimelightHelpers;
+import frc.robot.SwerveModule;
 import frc.robot.Constants.DriveTrain;
 
 /** Represents a swerve drive style drivetrain. */
-public class Drivetrain implements Subsystem {
+public class Drivetrain extends SubsystemBase {
+    public static enum DirectionOption {
+        FORWARD,
+        BACKWARD
+    }
     public static final double kMaxPossibleSpeed = 4.9; // meters per second
     public static final double kMaxAngularSpeed = 3 * Math.PI; // per second
 
@@ -89,6 +99,11 @@ public class Drivetrain implements Subsystem {
 
     private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
 
+    private boolean fieldRelative = true;
+    private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
+    private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
+    private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
+
     /**
      * The order that you initialize these is important! Later uses of functions
      * like toSwerveModuleStates will return the same order that these are provided.
@@ -98,23 +113,29 @@ public class Drivetrain implements Subsystem {
     private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
             m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
-    private final SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-            m_kinematics,
-            getGyroYawRotation2d(),
-            new SwerveModulePosition[] {
-                    m_frontLeft.getPosition(),
-                    m_frontRight.getPosition(),
-                    m_backLeft.getPosition(),
-                    m_backRight.getPosition()
-            });
+    private final SwerveDriveOdometry m_odometry;
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
-    private Pose2d robotFieldPosition = getRoboPose2d();
+    private Pose2d robotFieldPosition;
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
         //m_gyro.
         this.resetGyro();
+
+        m_odometry = new SwerveDriveOdometry(
+            m_kinematics,
+            getGyroYawRotation2d(),
+            new SwerveModulePosition[] {
+                m_frontLeft.getPosition(),
+                m_frontRight.getPosition(),
+                m_backLeft.getPosition(),
+                m_backRight.getPosition()
+            },
+            new Pose2d(
+                new Translation2d(2.0, 6.0), Rotation2d.fromDegrees(0.0)));
+        
+        robotFieldPosition = getRoboPose2d();
 
         // Configure AutoBuilder last
         AutoBuilder.configureHolonomic(
@@ -204,6 +225,27 @@ public class Drivetrain implements Subsystem {
         return m_chassisSpeeds;
     }
 
+    public DirectionOption getDirectionOption() {
+        return this.m_forwardDirection;
+    }
+
+    public Command setDirectionOptionCommand(DirectionOption option) {
+        return runOnce(() -> {
+            this.m_forwardDirection = option;
+        });
+    }
+    
+    public boolean getFieldRelative() {
+        return fieldRelative;
+    }
+
+    public Command toggleFieldRelativeCommand() {
+        return runOnce(() -> {
+            fieldRelative = !fieldRelative;
+            m_fieldRelativeWidget.getEntry().setBoolean(fieldRelative);
+        });
+    }
+
     /**
      * Module positions in the form of SwerveModulePositions (Module orientation and the distance the wheel has travelled across the ground)
      * @return SwerveModulePosition[]
@@ -245,7 +287,7 @@ public class Drivetrain implements Subsystem {
      * @param fieldRelative Whether the provided x and y speeds are relative to the
      *                      field.
      */
-    public void drive(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative) {
+    public void drive(double xSpeed, double ySpeed, double rotSpeed) {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 fieldRelative
                         ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed,
