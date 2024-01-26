@@ -30,6 +30,7 @@ import frc.robot.Commands.Drive;
 import frc.robot.Commands.StopDrive;
 import frc.robot.Commands.lockTarget;
 import frc.robot.Commands.resetOdo;
+import frc.robot.Constants.gamePieceIDs;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -40,8 +41,8 @@ import frc.robot.Commands.resetOdo;
 public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
-  private final XboxController m_badcontroller = new XboxController(Controller.kDriveController);
-  private final CommandXboxController m_controller = new CommandXboxController(Controller.kDriveController);
+  private final CommandXboxController m_manipController = new CommandXboxController(Controller.kManipController);
+  private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
     public final Drivetrain m_swerve = new Drivetrain();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
     Command driveCommand;
@@ -78,19 +79,26 @@ public class RobotContainer {
    */
   private void configureBindings() {
     Command lock = new lockTarget(m_swerve);
-    m_controller.leftBumper().onTrue(lock);
-   m_controller.rightBumper().onTrue((new resetOdo(m_swerve)));
-    m_controller.x().whileTrue(pathfindAmp);
+
+    //drive cont bindings
+    m_driveController.leftBumper().onTrue(lock);
+   m_driveController.rightBumper().onTrue((new resetOdo(m_swerve)));
+    m_driveController.x().whileTrue(pathfindAmp);
     /*
          * Y = forward camera
          * A = back camera
          */
-        m_controller.y().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.USB_CAMERA)
+        m_driveController.y().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.USB_CAMERA)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.FORWARD)));
-        m_controller.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
-        m_controller.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
+        m_driveController.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
+        m_driveController.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.BACKWARD)));
-        m_controller.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
+        m_driveController.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
+
+    //manip cont bindings
+    // m_manipController.x().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kNoteID)));
+    // m_manipController.y().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kSpeakerID)));
+    // m_manipController.b().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kAmpID)));
   }
 
   Command path1;

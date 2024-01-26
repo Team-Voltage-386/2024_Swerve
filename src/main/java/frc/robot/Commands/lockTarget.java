@@ -55,7 +55,6 @@ public class lockTarget extends Command {
     
     @Override
     public void execute() {
-        System.out.println("lpocked");
         readControllers();
         dt.lockPiece(xSpeed, ySpeed, rotSpeed, !m_controller.getAButton(), m_controller.getLeftTriggerAxis() > 0.25);
     }

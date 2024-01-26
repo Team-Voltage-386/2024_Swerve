@@ -5,6 +5,7 @@
 package frc.robot.Subsystems;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -35,6 +36,7 @@ import frc.robot.Constants.Offsets;
 import frc.robot.Utils.LimelightHelpers;
 import frc.robot.SwerveModule;
 import frc.robot.Constants.DriveTrain;
+import frc.robot.Constants.gamePieceIDs;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain extends SubsystemBase {
@@ -101,6 +103,7 @@ public class Drivetrain extends SubsystemBase {
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
     private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
     private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
+    private final SimpleWidget m_AimedRoboAngle = m_driveTab.add("angle", 1);
 
     /**
      * The order that you initialize these is important! Later uses of functions
@@ -120,7 +123,13 @@ public class Drivetrain extends SubsystemBase {
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
         //m_gyro.
-        this.resetGyro();
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                this.resetGyro();
+            } catch (Exception e) {
+            }
+        }).start();
 
         m_odometry = new SwerveDriveOdometry(
             m_kinematics,
@@ -175,7 +184,7 @@ public class Drivetrain extends SubsystemBase {
         // Some condition that should decide if we want to override rotation
         if(hasTarget()) {
                 // Return an optional containing the rotation override (this should be a field relative rotation)
-                return Optional.of(Rotation2d.fromDegrees(-getRobotRotToTarg())); //todo try a negative target.
+                return Optional.of(Rotation2d.fromDegrees(-getDesiredAimRot())); //todo try a negative target.
         } else {
                 // return an empty optional when we don't want to override the path's rotation
                 return Optional.empty();
@@ -185,8 +194,60 @@ public class Drivetrain extends SubsystemBase {
     /**
      * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
      */
+    public double getDesiredAimRot() {
+        // System.out.println(targetID == gamePieceIDs.kSpeakerID);
+        // if(targetID == gamePieceIDs.kSpeakerID)
+        //     return getSpeakerAimedRobotAngle();
+        // else
+            return getRobotRotToTarg();
+    }
+
     public double getRobotRotToTarg() {
         return MathUtil.inputModulus(m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
+    }
+
+    //i gotta add the vector of the robot to the vector of the note and then rotate the robot such that 
+    //the vector of the note and the vector of the robot sum to the vector of the robot to the speaker
+
+    public double[] getRobotVector() {
+        double[] vector = {m_chassisSpeeds.vxMetersPerSecond, -m_chassisSpeeds.vyMetersPerSecond};
+        return vector;
+    }
+
+    /**
+     * m/s
+     */
+    private double shooterSpeed = 5; //get later
+    
+    public double[] getNoteVector() {
+        double[] vector = {shooterSpeed * Math.cos(Math.toRadians(getChassisAngle())), shooterSpeed * Math.sin(Math.toRadians(getChassisAngle()))};
+        return vector;
+    }
+
+    public double[] getRealNoteVector() {
+        double realNoteXVector = getNoteVector()[0] + getRobotVector()[0];
+        double realNoteYVector = getNoteVector()[1] + getRobotVector()[1];
+        double realNoteVector[] = {realNoteXVector, realNoteYVector};
+        return realNoteVector;
+    }
+
+    public double getRealNoteAngle() {
+        double realAngle = Math.toDegrees(Math.atan(getRealNoteVector()[1]/getRealNoteVector()[0]));
+        SmartDashboard.putNumber("real note angle", realAngle);
+        return realAngle;
+    }
+
+
+    public double getAngleToSpeaker() {
+        double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
+    // if(!usingVision)
+        return toSpeakerAngle;
+    // else
+        // return getRobotRotToTarg();
+    }
+
+    public double getChassisAngle() {
+        return -getGyroYawRotation2d().getDegrees();
     }
 
     private int targetID = 1;
@@ -218,7 +279,7 @@ public class Drivetrain extends SubsystemBase {
      * Resets robot position on the field
      */
     public void resetOdo() {
-        m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), robotFieldPosition);
+        m_odometry.resetPosition(getGyroYawRotation2d(), getModulePositions(), new Pose2d(new Translation2d(3, 7), new Rotation2d()));
     }
 
     /**
@@ -342,7 +403,8 @@ public class Drivetrain extends SubsystemBase {
     /**
      * PID for AimLock 
      */
-    PIDController pieceLockPID = new PIDController(0.15, 0, 0); //todo tune perfectly.
+    PIDController pieceAimLockPID = new PIDController(0.15, 0, 0); //todo tune perfectly.
+    PIDController speakerAimLockPID = new PIDController(0.18, 0, 0);
     /**
      * What this code essentially does is when you're holding down the left button (in robot), just drive like normal until you see a game piece. 
      * once you see it, its locked. from this point, you may drive around as normal, but the aimlock will handle the robot's orientation. 
@@ -352,8 +414,12 @@ public class Drivetrain extends SubsystemBase {
      */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(hasTarget()) {
-                rotSpeed = -pieceLockPID.calculate(getGyroYawRotation2d().getDegrees(), getRobotRotToTarg());
+        if(true) {// if(hasTarget()) {
+                // if(getTarget() != gamePieceIDs.kSpeakerID)
+                //     rotSpeed = -pieceAimLockPID.calculate(getGyroYawRotation2d().getDegrees(), getDesiredAimRot());
+                // else
+                    rotSpeed = speakerAimLockPID.calculate(getAngleToSpeaker() - getRealNoteAngle()); //getRealNoteAngle()
+                    SmartDashboard.putNumber("rotSpeed", rotSpeed);
                 if(hardLocked) {
                         swerveModuleStates = m_kinematics.toSwerveModuleStates(
                                 new ChassisSpeeds(xSpeed, 0, rotSpeed)
@@ -364,7 +430,7 @@ public class Drivetrain extends SubsystemBase {
                                 ChassisSpeeds.fromFieldRelativeSpeeds(
                                         xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
                                 )
-                        ); 
+                        );
                 }
         }
         else {
@@ -438,7 +504,10 @@ public class Drivetrain extends SubsystemBase {
 
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
+        SmartDashboard.putNumber("angle to speaker", getAngleToSpeaker());
+        SmartDashboard.putNumber("note traj angle", getRealNoteAngle());
         SmartDashboard.putNumber("Desired Angle", getRobotRotToTarg());
+        SmartDashboard.putNumber("target error", getAngleToSpeaker() - getRealNoteAngle());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
         SmartDashboard.putNumber("WTF the gyro is", getGyroYawRotation2d().getDegrees());
         m_odometry.update(

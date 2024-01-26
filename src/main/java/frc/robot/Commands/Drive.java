@@ -1,7 +1,5 @@
 package frc.robot.Commands;
 
-import java.util.function.Supplier;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
@@ -70,7 +68,6 @@ public class Drive extends Command {
     @Override
     public void execute() {
         readControllers();
-        //dt.drive(xSpeed, ySpeed, rotSpeed, !m_controller.getAButton());
         dt.drive(xSpeed, ySpeed, rotSpeed);
     }
 
