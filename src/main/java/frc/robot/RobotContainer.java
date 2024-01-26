@@ -59,7 +59,7 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
     NamedCommands.registerCommand("StopDrive", new StopDrive(m_swerve));
-    NamedCommands.registerCommand("lock target", Commands.runOnce(()-> m_swerve.toggleLockTargetInAuto(), m_swerve));
+    NamedCommands.registerCommand("Lock Target in Auto", Commands.runOnce(()-> m_swerve.toggleLockTargetInAuto(), m_swerve));
 
     // Configure the trigger bindings
     pathPlannerStuff();
@@ -82,7 +82,7 @@ public class RobotContainer {
 
     //drive cont bindings
     m_driveController.leftBumper().onTrue(lock);
-   m_driveController.rightBumper().onTrue((new resetOdo(m_swerve)));
+    m_driveController.rightBumper().onTrue((new resetOdo(m_swerve)));
     m_driveController.x().whileTrue(pathfindAmp);
     /*
          * Y = forward camera

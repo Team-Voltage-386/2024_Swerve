@@ -103,7 +103,6 @@ public class Drivetrain extends SubsystemBase {
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
     private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
     private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
-    private final SimpleWidget m_AimedRoboAngle = m_driveTab.add("angle", 1);
 
     /**
      * The order that you initialize these is important! Later uses of functions
@@ -150,7 +149,7 @@ public class Drivetrain extends SubsystemBase {
                 this::getRoboPose2d, // Robot pose supplier
                 this::resetOdo, // Method to reset odometry (will be called if your auto has a starting pose)
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                this::driveWithChasisSpeeds, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+                this::driveInAuto, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
                 new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
                         new PIDConstants(7.4, 0.0, 0.0), // Translation PID constants p used to be 7
                         new PIDConstants(5.4, 0.0, 0.0), // Rotation PID constants
@@ -170,38 +169,11 @@ public class Drivetrain extends SubsystemBase {
                 },
                 this // Reference to this subsystem to set requirements
         );
-        if(lockTargetInAuto)
-            PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
-        else
-            PPHolonomicDriveController.setRotationTargetOverride(()-> Optional.empty());
-    }
-
-    /**
-     * Returns the rotation2d the robot must face to be pointed at the target. pass this to PPHolonomicDriveController
-     * @return
-     */
-    public Optional<Rotation2d> getRotationTargetOverride(){
-        // Some condition that should decide if we want to override rotation
-        if(hasTarget()) {
-                // Return an optional containing the rotation override (this should be a field relative rotation)
-                return Optional.of(Rotation2d.fromDegrees(-getDesiredAimRot())); //todo try a negative target.
-        } else {
-                // return an empty optional when we don't want to override the path's rotation
-                return Optional.empty();
-        }
     }
 
     /**
      * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
      */
-    public double getDesiredAimRot() {
-        // System.out.println(targetID == gamePieceIDs.kSpeakerID);
-        // if(targetID == gamePieceIDs.kSpeakerID)
-        //     return getSpeakerAimedRobotAngle();
-        // else
-            return getRobotRotToTarg();
-    }
-
     public double getRobotRotToTarg() {
         return MathUtil.inputModulus(m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
     }
@@ -363,7 +335,7 @@ public class Drivetrain extends SubsystemBase {
                 fieldRelative
                         ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed,
                                 getGyroYawRotation2d())
-                        : new ChassisSpeeds(xSpeed, ySpeed, rotSpeed));
+                        : ChassisSpeeds.fromRobotRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())); //new ChassisSpeeds(xSpeed, ySpeed, rotSpeed)
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
 
@@ -378,16 +350,30 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
     }
+
+    boolean speakerMode = true;
+
+    public void toggleMode() {
+        speakerMode = !speakerMode;
+    }
     
     /**
      * Pathplanner uses this method in order to interface with our Drivetrain.
      * @param chassisSpeeds Robot relative ChassisSpeeds of the robot containing X, Y, and Rotational Velocities.
      */
-    public void driveWithChasisSpeeds(ChassisSpeeds chassisSpeeds) {
-        SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
+    public void driveInAuto(ChassisSpeeds chassisSpeeds) {
+        //SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
+
+        SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                lockTargetInAuto
+                        ? ChassisSpeeds.fromRobotRelativeSpeeds(chassisSpeeds.vxMetersPerSecond, 
+                            chassisSpeeds.vyMetersPerSecond, 
+                            speakerMode ? getSpeakerAimLockPIDCalc() : getPieceAimLockPIDCalc(), //if speakermode, use speakeraim, if not speakermode, use piece aim.
+                            getGyroYawRotation2d())
+                        : chassisSpeeds);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
-        ;
+        //
         SmartDashboard.putNumber("desired X Speed", chassisSpeeds.vxMetersPerSecond);
         SmartDashboard.putNumber("desired Y Speed", chassisSpeeds.vyMetersPerSecond);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(chassisSpeeds.omegaRadiansPerSecond));
@@ -398,6 +384,14 @@ public class Drivetrain extends SubsystemBase {
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
         updateOdometry();
+    }
+
+    public double getSpeakerAimLockPIDCalc() {
+        return speakerAimLockPID.calculate(getAngleToSpeaker() - getRealNoteAngle());
+    }
+
+    public double getPieceAimLockPIDCalc() {
+        return -pieceAimLockPID.calculate(getGyroYawRotation2d().getDegrees(), getRobotRotToTarg());
     }
 
     /**
@@ -414,11 +408,11 @@ public class Drivetrain extends SubsystemBase {
      */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(true) {// if(hasTarget()) {
-                // if(getTarget() != gamePieceIDs.kSpeakerID)
-                //     rotSpeed = -pieceAimLockPID.calculate(getGyroYawRotation2d().getDegrees(), getDesiredAimRot());
-                // else
-                    rotSpeed = speakerAimLockPID.calculate(getAngleToSpeaker() - getRealNoteAngle()); //getRealNoteAngle()
+        if(hasTarget() && getTarget() != gamePieceIDs.kSpeakerID) {
+                if(getTarget() != gamePieceIDs.kSpeakerID)
+                    rotSpeed = getPieceAimLockPIDCalc();
+                else
+                    rotSpeed = getSpeakerAimLockPIDCalc();
                     SmartDashboard.putNumber("rotSpeed", rotSpeed);
                 if(hardLocked) {
                         swerveModuleStates = m_kinematics.toSwerveModuleStates(
@@ -485,7 +479,6 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void stopDriving() {
-        System.out.println("I AINT DRIVING");
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 0,
