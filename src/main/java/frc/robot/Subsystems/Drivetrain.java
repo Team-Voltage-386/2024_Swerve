@@ -340,7 +340,7 @@ public class Drivetrain extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 fieldRelative
                         ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())
-                        : ChassisSpeeds.fromRobotRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())); //new ChassisSpeeds(xSpeed, ySpeed, rotSpeed)
+                        : new ChassisSpeeds(xSpeed, ySpeed, rotSpeed));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
 
