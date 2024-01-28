@@ -175,45 +175,6 @@ public class Drivetrain extends SubsystemBase {
         );
     }
 
-    /**
-     * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
-     */
-    public Rotation2d getRobotRotToTarg() {
-        SmartDashboard.putNumber("LL TX angle deg", LimelightHelpers.getTX(""));
-        return Rotation2d.fromDegrees(getChassisAngle() - LimelightHelpers.getTX(""));
-    }
-
-    //i gotta add the vector of the robot to the vector of the note and then rotate the robot such that 
-    //the vector of the note and the vector of the robot sum to the vector of the robot to the speaker
-
-    public double[] getRobotVector() {
-        double[] vector = {m_chassisSpeeds.vxMetersPerSecond, -m_chassisSpeeds.vyMetersPerSecond};
-        return vector;
-    }
-
-    /**
-     * m/s
-     */
-    private double shooterSpeed = 5; //get later
-    
-    public double[] getNoteVector() {
-        double[] vector = {shooterSpeed * Math.cos(Math.toRadians(getChassisAngle())), shooterSpeed * Math.sin(Math.toRadians(getChassisAngle()))};
-        return vector;
-    }
-
-    public double[] getRealNoteVector() {
-        double realNoteXVector = getNoteVector()[0] + getRobotVector()[0];
-        double realNoteYVector = getNoteVector()[1] + getRobotVector()[1];
-        double realNoteVector[] = {realNoteXVector, realNoteYVector};
-        return realNoteVector;
-    }
-
-    public double getRealNoteAngle() {
-        double realAngle = Math.toDegrees(Math.atan(getRealNoteVector()[1]/getRealNoteVector()[0]));
-        SmartDashboard.putNumber("real note angle", realAngle);
-        return realAngle;
-    }
-
 
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
@@ -221,14 +182,6 @@ public class Drivetrain extends SubsystemBase {
         return toSpeakerAngle;
     // else
         // return getRobotRotToTarg();
-    }
-
-    /**
-     * Using the gyro, outputs Rotation2d of the robot
-     * @return
-     */
-    public double getChassisAngle() {
-        return getGyroYawRotation2d().getDegrees();
     }
 
     private int targetID = 3;
@@ -396,11 +349,11 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getSpeakerAimLockPIDCalc() {
-        return speakerAimLockPID.calculate(Math.toRadians(getAngleToSpeaker() - getRealNoteAngle()));
+        return speakerAimLockPID.calculate(1);
     }
 
     public double getPieceAimLockPIDCalc() {
-        return pieceAimLockPID.calculate(Math.toRadians(getChassisAngle()), Math.toRadians(getRobotRotToTarg()));
+        return pieceAimLockPID.calculate(1);
     }
 
     /**
@@ -423,7 +376,7 @@ public class Drivetrain extends SubsystemBase {
                 // }
                 // else {
                 //     System.out.println("tag");
-                    rotSpeed = -getPieceAimLockPIDCalc();
+                    //rotSpeed = -getPieceAimLockPIDCalc();
                 // }
                 SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
                 if(hardLocked) {
@@ -510,11 +463,7 @@ public class Drivetrain extends SubsystemBase {
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
         SmartDashboard.putNumber("angle to speaker", getAngleToSpeaker());
-        SmartDashboard.putNumber("note traj angle", getRealNoteAngle());
-        SmartDashboard.putNumber("Desired Angle", getRobotRotToTarg());
-        SmartDashboard.putNumber("target error", getAngleToSpeaker() - getRealNoteAngle());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
-        SmartDashboard.putNumber("The Gyro", getChassisAngle());
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());
