@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix.sensors.Pigeon2;
+import com.ctre.phoenix.sensors.Pigeon2Configuration;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -133,8 +134,6 @@ public class Drivetrain extends SubsystemBase {
             }
         }).start();
 
-        //m_gyro.
-
         m_odometry = new SwerveDriveOdometry(
             m_kinematics,
             getGyroYawRotation2d(),
@@ -179,9 +178,9 @@ public class Drivetrain extends SubsystemBase {
     /**
      * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
      */
-    public double getRobotRotToTarg() {
+    public Rotation2d getRobotRotToTarg() {
         SmartDashboard.putNumber("LL TX angle deg", LimelightHelpers.getTX(""));
-        return MathUtil.inputModulus(getChassisAngle() - LimelightHelpers.getTX(""), -180, 180);
+        return Rotation2d.fromDegrees(getChassisAngle() - LimelightHelpers.getTX(""));
     }
 
     //i gotta add the vector of the robot to the vector of the note and then rotate the robot such that 
@@ -224,6 +223,10 @@ public class Drivetrain extends SubsystemBase {
         // return getRobotRotToTarg();
     }
 
+    /**
+     * Using the gyro, outputs Rotation2d of the robot
+     * @return
+     */
     public double getChassisAngle() {
         return getGyroYawRotation2d().getDegrees();
     }
@@ -324,7 +327,8 @@ public class Drivetrain extends SubsystemBase {
      * @return chasis angle in Rotation2d
      */
     public Rotation2d getGyroYawRotation2d() {
-        return Rotation2d.fromDegrees(MathUtil.inputModulus(m_gyro.getYaw(), -180, 180));
+        // return Rotation2d.fromDegrees(MathUtil.inputModulus(m_gyro.getYaw(), -180, 180));
+        return Rotation2d.fromDegrees(m_gyro.getYaw());
     }
 
     /**
