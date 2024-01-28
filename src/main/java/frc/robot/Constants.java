@@ -35,8 +35,8 @@ public class Constants {
 
     public static class gamePieceIDs { //todo update these to actually use them in game
         public static final int kNoteID = 2;
-        public static final int kSpeakerID = 1;
-        public static final int kAmpID = 3;
+        public static final int kSpeakerID = 5;
+        public static final int kAmpID = 4;
     }
 
     public static class DriveTrain {
@@ -77,7 +77,7 @@ public class Constants {
         public static final double kRateLimitXSpeed = 100.0;
         public static final double kRateLimitYSpeed = 100.0;
         public static final double kRateLimitRot = 100.0;
-        public static final double kMaxNecessarySpeed = Drivetrain.kMaxPossibleSpeed * 0.6;
+        public static final double kMaxNecessarySpeed = Drivetrain.kMaxPossibleSpeed * 0.8;
     }
 
     public static class Offsets {

@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.util.function.Supplier;
 
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathConstraints;
@@ -43,15 +44,18 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
   private final CommandXboxController m_manipController = new CommandXboxController(Controller.kManipController);
   private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
-    public final Drivetrain m_swerve = new Drivetrain();
+  public final Drivetrain m_swerve = new Drivetrain();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
-    Command driveCommand;
+  Command driveCommand;
+  Command lock;
+  Command toggleScoreModeCommand;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Xbox controllers return negative values when we push forward.   
     driveCommand = new Drive(m_swerve);
-
+    lock = new lockTarget(m_swerve);
+    toggleScoreModeCommand = Commands.runOnce(()->m_swerve.toggleMode());
     m_swerve.setDefaultCommand(driveCommand);
     
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
@@ -78,7 +82,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    Command lock = new lockTarget(m_swerve);
+
 
     //drive cont bindings
     m_driveController.leftBumper().onTrue(lock);

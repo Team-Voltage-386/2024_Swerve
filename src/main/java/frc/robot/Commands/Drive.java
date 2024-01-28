@@ -25,9 +25,9 @@ public class Drive extends Command {
         System.out.println("Driving.");
     }
 
-    double xSpeed;
-    double ySpeed;
-    double rotSpeed;
+    private double xSpeed;
+    private double ySpeed;
+    private double rotSpeed;
 
     private void readControllers() {
         // Get the x speed. We are inverting this because Xbox controllers return

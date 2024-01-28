@@ -16,6 +16,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -24,6 +25,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -44,7 +47,7 @@ public class Drivetrain extends SubsystemBase {
         FORWARD,
         BACKWARD
     }
-    public static final double kMaxPossibleSpeed = 4.9; // meters per second
+    public static final double kMaxPossibleSpeed = 5; // meters per second
     public static final double kMaxAngularSpeed = 3 * Math.PI; // per second
 
     private final Translation2d m_frontLeftLocation = new Translation2d(
@@ -130,6 +133,8 @@ public class Drivetrain extends SubsystemBase {
             }
         }).start();
 
+        //m_gyro.
+
         m_odometry = new SwerveDriveOdometry(
             m_kinematics,
             getGyroYawRotation2d(),
@@ -175,7 +180,8 @@ public class Drivetrain extends SubsystemBase {
      * Returns the angle (in degrees) the robot needs to face in order to be oriented directly at the target. this is a field relative value.
      */
     public double getRobotRotToTarg() {
-        return MathUtil.inputModulus(m_gyro.getYaw() + LimelightHelpers.getTX(""), -180, 180);
+        SmartDashboard.putNumber("LL TX angle deg", LimelightHelpers.getTX(""));
+        return MathUtil.inputModulus(getChassisAngle() - LimelightHelpers.getTX(""), -180, 180);
     }
 
     //i gotta add the vector of the robot to the vector of the note and then rotate the robot such that 
@@ -219,10 +225,10 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getChassisAngle() {
-        return -getGyroYawRotation2d().getDegrees();
+        return getGyroYawRotation2d().getDegrees();
     }
 
-    private int targetID = 1;
+    private int targetID = 3;
 
     public void setTarget(int targetID) {
         this.targetID = targetID;
@@ -333,8 +339,7 @@ public class Drivetrain extends SubsystemBase {
     public void drive(double xSpeed, double ySpeed, double rotSpeed) {
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 fieldRelative
-                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed,
-                                getGyroYawRotation2d())
+                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())
                         : ChassisSpeeds.fromRobotRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())); //new ChassisSpeeds(xSpeed, ySpeed, rotSpeed)
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
@@ -363,12 +368,12 @@ public class Drivetrain extends SubsystemBase {
      */
     public void driveInAuto(ChassisSpeeds chassisSpeeds) {
         //SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
-
+        //comment: if speakermode, use speakeraim, if not speakermode, use piece aim. if using piece aim and dont see a piece, follow normal path.
         SwerveModuleState[] swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 lockTargetInAuto
                         ? ChassisSpeeds.fromRobotRelativeSpeeds(chassisSpeeds.vxMetersPerSecond, 
                             chassisSpeeds.vyMetersPerSecond, 
-                            speakerMode ? getSpeakerAimLockPIDCalc() : getPieceAimLockPIDCalc(), //if speakermode, use speakeraim, if not speakermode, use piece aim.
+                            speakerMode ? getSpeakerAimLockPIDCalc() : hasTarget() ? getPieceAimLockPIDCalc() : chassisSpeeds.omegaRadiansPerSecond, //comment
                             getGyroYawRotation2d())
                         : chassisSpeeds);
 
@@ -387,18 +392,18 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getSpeakerAimLockPIDCalc() {
-        return speakerAimLockPID.calculate(getAngleToSpeaker() - getRealNoteAngle());
+        return speakerAimLockPID.calculate(Math.toRadians(getAngleToSpeaker() - getRealNoteAngle()));
     }
 
     public double getPieceAimLockPIDCalc() {
-        return -pieceAimLockPID.calculate(getGyroYawRotation2d().getDegrees(), getRobotRotToTarg());
+        return pieceAimLockPID.calculate(Math.toRadians(getChassisAngle()), Math.toRadians(getRobotRotToTarg()));
     }
 
     /**
      * PID for AimLock 
      */
-    PIDController pieceAimLockPID = new PIDController(0.15, 0, 0); //todo tune perfectly.
-    PIDController speakerAimLockPID = new PIDController(0.18, 0, 0);
+    ProfiledPIDController pieceAimLockPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(180))); //todo tune perfectly. 0.15
+    ProfiledPIDController speakerAimLockPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(720)));
     /**
      * What this code essentially does is when you're holding down the left button (in robot), just drive like normal until you see a game piece. 
      * once you see it, its locked. from this point, you may drive around as normal, but the aimlock will handle the robot's orientation. 
@@ -408,12 +413,15 @@ public class Drivetrain extends SubsystemBase {
      */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(hasTarget() && getTarget() != gamePieceIDs.kSpeakerID) {
-                if(getTarget() != gamePieceIDs.kSpeakerID)
-                    rotSpeed = getPieceAimLockPIDCalc();
-                else
-                    rotSpeed = getSpeakerAimLockPIDCalc();
-                    SmartDashboard.putNumber("rotSpeed", rotSpeed);
+        if(hasTarget() || getTarget() == gamePieceIDs.kSpeakerID) {
+                // if(getTarget() == gamePieceIDs.kSpeakerID) {
+                //     rotSpeed = getSpeakerAimLockPIDCalc();
+                // }
+                // else {
+                //     System.out.println("tag");
+                    rotSpeed = -getPieceAimLockPIDCalc();
+                // }
+                SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
                 if(hardLocked) {
                         swerveModuleStates = m_kinematics.toSwerveModuleStates(
                                 new ChassisSpeeds(xSpeed, 0, rotSpeed)
@@ -502,7 +510,7 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("Desired Angle", getRobotRotToTarg());
         SmartDashboard.putNumber("target error", getAngleToSpeaker() - getRealNoteAngle());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
-        SmartDashboard.putNumber("WTF the gyro is", getGyroYawRotation2d().getDegrees());
+        SmartDashboard.putNumber("The Gyro", getChassisAngle());
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());
