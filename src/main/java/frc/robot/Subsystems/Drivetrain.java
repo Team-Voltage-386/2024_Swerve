@@ -122,6 +122,7 @@ public class Drivetrain extends SubsystemBase {
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
     private boolean lockTargetInAuto = false;
+    private ProfiledPIDController aimPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(180)));
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
@@ -198,8 +199,21 @@ public class Drivetrain extends SubsystemBase {
         return LimelightHelpers.getFiducialID("") == getTarget();
     }
 
+    /**
+     * @return degrees to the target, right is +, left is -
+     */
+    public double getAngleToTarget() {
+        if(hasTarget())
+        return LimelightHelpers.getTX("");
+        else return 0;
+    }
+
     public void toggleLockTargetInAuto() {
         lockTargetInAuto = !lockTargetInAuto;
+    }
+
+    public double getRotationSpeedForTarget() {
+        return aimPID.calculate(Math.toRadians(getAngleToTarget()));
     }
 
     /**
@@ -330,7 +344,7 @@ public class Drivetrain extends SubsystemBase {
                 lockTargetInAuto
                         ? ChassisSpeeds.fromRobotRelativeSpeeds(chassisSpeeds.vxMetersPerSecond, 
                             chassisSpeeds.vyMetersPerSecond, 
-                            speakerMode ? getSpeakerAimLockPIDCalc() : hasTarget() ? getPieceAimLockPIDCalc() : chassisSpeeds.omegaRadiansPerSecond, //comment
+                            hasTarget() ? getRotationSpeedForTarget() : chassisSpeeds.omegaRadiansPerSecond, //comment
                             getGyroYawRotation2d())
                         : chassisSpeeds);
 
@@ -348,19 +362,6 @@ public class Drivetrain extends SubsystemBase {
         updateOdometry();
     }
 
-    public double getSpeakerAimLockPIDCalc() {
-        return speakerAimLockPID.calculate(1);
-    }
-
-    public double getPieceAimLockPIDCalc() {
-        return pieceAimLockPID.calculate(1);
-    }
-
-    /**
-     * PID for AimLock 
-     */
-    ProfiledPIDController pieceAimLockPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(180))); //todo tune perfectly. 0.15
-    ProfiledPIDController speakerAimLockPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(720)));
     /**
      * What this code essentially does is when you're holding down the left button (in robot), just drive like normal until you see a game piece. 
      * once you see it, its locked. from this point, you may drive around as normal, but the aimlock will handle the robot's orientation. 
@@ -371,13 +372,7 @@ public class Drivetrain extends SubsystemBase {
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
         if(hasTarget() || getTarget() == gamePieceIDs.kSpeakerID) {
-                // if(getTarget() == gamePieceIDs.kSpeakerID) {
-                //     rotSpeed = getSpeakerAimLockPIDCalc();
-                // }
-                // else {
-                //     System.out.println("tag");
-                    //rotSpeed = -getPieceAimLockPIDCalc();
-                // }
+                rotSpeed = getRotationSpeedForTarget();
                 SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
                 if(hardLocked) {
                         swerveModuleStates = m_kinematics.toSwerveModuleStates(
