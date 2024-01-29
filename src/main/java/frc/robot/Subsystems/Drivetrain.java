@@ -18,6 +18,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -122,7 +123,8 @@ public class Drivetrain extends SubsystemBase {
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
     private boolean lockTargetInAuto = false;
-    private ProfiledPIDController aimPID = new ProfiledPIDController(12, 0, 0.1, new Constraints(Math.toRadians(180), Math.toRadians(180)));
+    private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
+    private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
 
     public Drivetrain() {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
@@ -213,7 +215,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getRotationSpeedForTarget() {
-        return aimPID.calculate(Math.toRadians(getAngleToTarget()));
+        return -aimFF.calculate(Math.toRadians(getAngleToTarget())) + aimPID.calculate(Math.toRadians(getAngleToTarget()));
     }
 
     /**
