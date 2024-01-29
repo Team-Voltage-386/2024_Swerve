@@ -39,6 +39,12 @@ public class Constants {
         public static final int kAmpID = 4;
     }
 
+    public static class Shooter {
+        public static final int kShooterAimMotorID = 20;
+        public static final int kShooterMotorID = 21;
+        public static final double kShooterSpeed = 10;
+    }
+
     public static class DriveTrain {
         public static final double kDistanceMiddleToFrontMotor = 0.365125;
         public static final double kDistanceMiddleToSideMotor = 0.263525;
