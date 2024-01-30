@@ -76,13 +76,13 @@ public class ShooterSubsystem extends SubsystemBase {
         double Vx = getDistToSpeaker()*((Math.cos(getShooterAngle())/motorSpeed)
          + (Math.cos(m_swerve.getAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
         double angle = 2*getAngleToSpeaker() - Math.atan(Vy/Vx);
-        if(angle >= 30 && angle <= 60)
+        if(angle >= 32 && angle <= 52)
             return angle;
         else {
-            if(angle > 60)
-                return 60;
+            if(angle > 52)
+                return 52;
             else
-                return 30;
+                return 32;
         }
     }
 
