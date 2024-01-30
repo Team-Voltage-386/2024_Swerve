@@ -35,7 +35,7 @@ public class Constants {
 
     public static class gamePieceIDs { //todo update these to actually use them in game
         public static final int kNoteID = 2;
-        public static final int kSpeakerID = 5;
+        public static final int kSpeakerID = 1;
         public static final int kAmpID = 4;
     }
 

@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix.sensors.Pigeon2;
 import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Controller;
 import frc.robot.Constants.Deadbands;
+import frc.robot.Constants.ID;
 import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
@@ -44,7 +46,8 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
   private final CommandXboxController m_manipController = new CommandXboxController(Controller.kManipController);
   private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
-  public final Drivetrain m_swerve = new Drivetrain();
+  private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
+  public final Drivetrain m_swerve = new Drivetrain(m_gyro);
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
   Command driveCommand;
   Command lock;
