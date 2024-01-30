@@ -187,6 +187,15 @@ public class Drivetrain extends SubsystemBase {
         // return getRobotRotToTarg();
     }
 
+    /**
+     * @return radians
+     */
+    public double getSpeakerAimTargetAngle() {
+        double Vy = getChassisSpeeds().vyMetersPerSecond + 10*Math.sin(getRoboPose2d().getRotation().getRadians());
+        double Vx = getChassisSpeeds().vxMetersPerSecond + 10*Math.cos(getRoboPose2d().getRotation().getRadians());
+        return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
+    }
+
     private int targetID = 3;
 
     public void setTarget(int targetID) {
@@ -215,7 +224,10 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getRotationSpeedForTarget() {
-        return -aimFF.calculate(Math.toRadians(getAngleToTarget())) + aimPID.calculate(Math.toRadians(getAngleToTarget()));
+        if(targetID != gamePieceIDs.kSpeakerID)
+            return -aimFF.calculate(Math.toRadians(getAngleToTarget())) + aimPID.calculate(Math.toRadians(getAngleToTarget()));
+        else
+            return -aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
     }
 
     /**
