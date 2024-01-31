@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
 import frc.robot.Constants.Offsets;
 import frc.robot.Utils.LimelightHelpers;
+import frc.robot.Utils.Aimlock;
 import frc.robot.SwerveModule;
 import frc.robot.Constants.DriveTrain;
 import frc.robot.Constants.gamePieceIDs;
@@ -112,12 +113,11 @@ public class Drivetrain extends SubsystemBase {
 
     private final SwerveDriveOdometry m_odometry;
     private String limelightName = "limelight-a";
+    private Aimlock m_aim = new Aimlock();
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
     private boolean lockTargetInAuto = false;
-    private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
-    private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
 
     public Drivetrain(Pigeon2 m_gyro) {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
@@ -166,69 +166,9 @@ public class Drivetrain extends SubsystemBase {
     }
 
 
-    public double getAngleToSpeaker() {
-        double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
-    if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
-        return toSpeakerAngle;
-    else
-        return getLLFRAngleToTarget();
-    }
-
-    /**
-     * @return radians
-     */
-    public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
-        double Vy = getChassisSpeeds().vyMetersPerSecond + 10*Math.sin(Math.toRadians(getAngleToSpeaker()));
-        double Vx = getChassisSpeeds().vxMetersPerSecond + 10*Math.cos(Math.toRadians(getAngleToSpeaker()));
-        return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
-    }
-
-    private int targetID = 1;
-
-    public void setTarget(int targetID) {
-        this.targetID = targetID;
-    }
-
-    public int getTarget() {
-        return this.targetID;
-    }
-
-    public boolean hasTarget() {
-        return LimelightHelpers.getFiducialID(limelightName) == getTarget();
-    }
-
-    /**
-     * @return degrees to the target, right is +, left is -
-     */
-    public double getLLAngleToTarget() {
-        if(hasTarget()) {
-        return LimelightHelpers.getTX(limelightName);
-        }
-        else return 0;
-    }
-
-    /**
-     * @return degrees to the target, right is -, left is +
-     */
-    public double getLLFRAngleToTarget() {
-        double angle = getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(limelightName);
-        if(hasTarget())
-            return angle;
-        else 
-            return 0;
-    }
 
     public void toggleLockTargetInAuto() {
         lockTargetInAuto = !lockTargetInAuto;
-    }
-
-    public double getRotationSpeedForTarget() {
-        if(targetID != gamePieceIDs.kSpeakerID)
-            return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) - aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
-        else
-            return hasTarget() 
-            ? aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians())/4 
-            : aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
     }
 
     /**
@@ -359,7 +299,7 @@ public class Drivetrain extends SubsystemBase {
                 lockTargetInAuto
                         ? ChassisSpeeds.fromRobotRelativeSpeeds(chassisSpeeds.vxMetersPerSecond, 
                             chassisSpeeds.vyMetersPerSecond, 
-                            hasTarget() ? getRotationSpeedForTarget() : chassisSpeeds.omegaRadiansPerSecond, //comment
+                            m_aim.hasTarget() ? m_aim.getRotationSpeedForTarget() : chassisSpeeds.omegaRadiansPerSecond, //comment
                             getGyroYawRotation2d())
                         : chassisSpeeds);
 
@@ -386,8 +326,8 @@ public class Drivetrain extends SubsystemBase {
      */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(hasTarget() || getTarget() == gamePieceIDs.kSpeakerID) {
-                rotSpeed = getRotationSpeedForTarget();
+        if(m_aim.hasTarget() || m_aim.getTargetID() == gamePieceIDs.kSpeakerID) {
+                rotSpeed = m_aim.getRotationSpeedForTarget();
                 SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
                 if(hardLocked) {
                         swerveModuleStates = m_kinematics.toSwerveModuleStates(
@@ -473,7 +413,7 @@ public class Drivetrain extends SubsystemBase {
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
         SmartDashboard.putNumber("limelight FR target angle", getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(""));
-        SmartDashboard.putNumber("angle to speaker", getAngleToSpeaker());
+        SmartDashboard.putNumber("angle to speaker", m_aim.getAngleToSpeaker());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(limelightName));
         m_odometry.update(
                 getGyroYawRotation2d(),

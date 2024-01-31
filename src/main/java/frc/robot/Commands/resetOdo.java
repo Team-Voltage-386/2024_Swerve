@@ -15,6 +15,7 @@ public class resetOdo extends Command {
         System.out.println("resetting odometry");
         dt.resetGyro();
         dt.resetOdo();
+        dt.resetOdo(); //yes, call it twice.
     }
 
     @Override

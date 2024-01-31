@@ -29,6 +29,7 @@ import frc.robot.Constants.ID;
 import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
+import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Commands.Drive;
 import frc.robot.Commands.StopDrive;
 import frc.robot.Commands.lockTarget;
@@ -48,6 +49,7 @@ public class RobotContainer {
   private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
   private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
   public final Drivetrain m_swerve = new Drivetrain(m_gyro);
+  public final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
   Command driveCommand;
   Command lock;
@@ -128,6 +130,14 @@ public class RobotContainer {
       constraints,
       0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
     );
+  }
+
+  public Drivetrain getDrivetrain() {
+    return m_swerve;
+  }
+
+  public ShooterSubsystem getShooter() {
+    return m_shooter; //
   }
 
   /**

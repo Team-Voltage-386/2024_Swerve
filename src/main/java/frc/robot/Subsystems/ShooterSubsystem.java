@@ -11,13 +11,10 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Shooter;
 import frc.robot.Utils.LimelightHelpers;
-import frc.robot.Subsystems.Drivetrain;
+import frc.robot.Utils.Aimlock;
 
 public class ShooterSubsystem extends SubsystemBase {
-    private double limelightHeight = Units.inchesToMeters(24);
-    private double targetTagHeight = Units.inchesToMeters(51.88);
-    private double speakerHeight = Units.inchesToMeters(82);
-    private double motorSpeed;
+    private Aimlock m_aim = new Aimlock();
 
     private CANSparkMax AimMotor;
     // private CANSparkMax shooterMotor;
@@ -31,16 +28,12 @@ public class ShooterSubsystem extends SubsystemBase {
     ProfiledPIDController AimPID = new ProfiledPIDController(0, 0, 0, new Constraints(90, 120));
     ProfiledPIDController ShootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
 
-    private Drivetrain m_swerve;
-
-    public ShooterSubsystem(Drivetrain m_swerve) {
-        this.m_swerve = m_swerve;
+    public ShooterSubsystem() {
         // shooterMotor = new CANSparkMax(Shooter.kShooterMotorID, MotorType.kBrushless);
         AimMotor = new CANSparkMax(Shooter.kShooterAimMotorID, MotorType.kBrushless);
         AimMotor.getEncoder().setPosition(Units.degreesToRotations(30));
         AimFF = new SimpleMotorFeedforward(0.0, 0.0);
         // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
-        motorSpeed = 10;
     }
 
     // /**
@@ -51,39 +44,11 @@ public class ShooterSubsystem extends SubsystemBase {
     // }
 
     // public void spoolMotors() {
-    //     shooterMotor.setVoltage(ShootFF.calculate(motorSpeed) + ShootPID.calculate(getShootMotorSpeed(), motorSpeed));
+    //     shooterMotor.setVoltage(ShootFF.calculate(Shooter.kShooterSpeed) + ShootPID.calculate(getShootMotorSpeed(), Shooter.kShooterSpeed));
     // }
-
-    public double getDistToTag() {
-        return (targetTagHeight-limelightHeight)*(1/Math.tan(LimelightHelpers.getTY("")));
-    }
-
-    public double getDistToSpeaker() {
-        return Math.hypot(getDistToTag(), speakerHeight);
-    }
-
-    public double getAngleToSpeaker() {
-        return Math.atan(speakerHeight/getDistToTag());
-    }
 
     public double getShooterAngle() {
         return Units.rotationsToDegrees(AimMotor.getEncoder().getPosition());
-    }
-
-    public double getShooterTargetAngle() {
-        double Vy = getDistToSpeaker()*((Math.sin(getShooterAngle())/motorSpeed)
-         + (Math.sin(m_swerve.getAngleToSpeaker())/m_swerve.getChassisSpeeds().vyMetersPerSecond));
-        double Vx = getDistToSpeaker()*((Math.cos(getShooterAngle())/motorSpeed)
-         + (Math.cos(m_swerve.getAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
-        double angle = 2*getAngleToSpeaker() - Math.atan(Vy/Vx);
-        if(angle >= 32 && angle <= 52)
-            return angle;
-        else {
-            if(angle > 52)
-                return 52;
-            else
-                return 32;
-        }
     }
 
     public void aimShooter(double targetAngle) {
@@ -98,6 +63,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        aimShooter(getShooterTargetAngle());
+        aimShooter(m_aim.getShooterTargetAngle());
     }
 }
