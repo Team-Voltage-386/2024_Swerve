@@ -111,6 +111,7 @@ public class Drivetrain extends SubsystemBase {
             m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
     private final SwerveDriveOdometry m_odometry;
+    private String limelightName = "limelight-a";
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
@@ -167,18 +168,18 @@ public class Drivetrain extends SubsystemBase {
 
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
-    // if(!usingVision)
+    if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
         return toSpeakerAngle;
-    // else
-        // return getRobotRotToTarg();
+    else
+        return getLLFRAngleToTarget();
     }
 
     /**
      * @return radians
      */
     public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
-        double Vy = getChassisSpeeds().vyMetersPerSecond + 5*Math.sin(hasTarget() ? -Math.toRadians(getFRAngleToTarget()) : Math.toRadians(getAngleToSpeaker()));
-        double Vx = getChassisSpeeds().vxMetersPerSecond + 5*Math.cos(hasTarget() ? -Math.toRadians(getFRAngleToTarget()) : Math.toRadians(getAngleToSpeaker()));
+        double Vy = getChassisSpeeds().vyMetersPerSecond + 10*Math.sin(Math.toRadians(getAngleToSpeaker()));
+        double Vx = getChassisSpeeds().vxMetersPerSecond + 10*Math.cos(Math.toRadians(getAngleToSpeaker()));
         return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
     }
 
@@ -193,15 +194,15 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public boolean hasTarget() {
-        return LimelightHelpers.getFiducialID("") == getTarget();
+        return LimelightHelpers.getFiducialID(limelightName) == getTarget();
     }
 
     /**
      * @return degrees to the target, right is +, left is -
      */
-    public double getAngleToTarget() {
+    public double getLLAngleToTarget() {
         if(hasTarget()) {
-        return LimelightHelpers.getTX("");
+        return LimelightHelpers.getTX(limelightName);
         }
         else return 0;
     }
@@ -209,13 +210,12 @@ public class Drivetrain extends SubsystemBase {
     /**
      * @return degrees to the target, right is -, left is +
      */
-    public double getFRAngleToTarget() {
-        double angle = getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX("");
-        if(hasTarget()) {
-        
-        return angle;
-        }
-        else return 0;
+    public double getLLFRAngleToTarget() {
+        double angle = getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(limelightName);
+        if(hasTarget())
+            return angle;
+        else 
+            return 0;
     }
 
     public void toggleLockTargetInAuto() {
@@ -224,9 +224,11 @@ public class Drivetrain extends SubsystemBase {
 
     public double getRotationSpeedForTarget() {
         if(targetID != gamePieceIDs.kSpeakerID)
-            return -aimFF.calculate(Math.toRadians(getAngleToTarget())) + aimPID.calculate(Math.toRadians(getAngleToTarget()));
+            return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) - aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
         else
-            return aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
+            return hasTarget() 
+            ? aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians())/4 
+            : aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
     }
 
     /**
@@ -472,7 +474,7 @@ public class Drivetrain extends SubsystemBase {
     public void updateOdometry() {
         SmartDashboard.putNumber("limelight FR target angle", getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(""));
         SmartDashboard.putNumber("angle to speaker", getAngleToSpeaker());
-        SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
+        SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(limelightName));
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());
