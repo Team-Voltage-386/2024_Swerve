@@ -27,6 +27,7 @@ import frc.robot.Constants.Controller;
 import frc.robot.Constants.Deadbands;
 import frc.robot.Constants.ID;
 import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
+import frc.robot.Utils.Aimlock;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Subsystems.ShooterSubsystem;
@@ -60,7 +61,7 @@ public class RobotContainer {
     // Xbox controllers return negative values when we push forward.   
     driveCommand = new Drive(m_swerve);
     lock = new lockTarget(m_swerve);
-    toggleScoreModeCommand = Commands.runOnce(()->m_swerve.toggleMode());
+    toggleScoreModeCommand = Commands.runOnce(()->Aimlock.toggleMode());
     m_swerve.setDefaultCommand(driveCommand);
     
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'

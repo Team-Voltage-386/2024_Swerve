@@ -24,6 +24,14 @@ public class Aimlock {
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
 
+    static boolean speakerMode = true;
+
+    private int targetID = 1;
+
+    public static void toggleMode() {
+        speakerMode = !speakerMode;
+    }
+
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - m_swerve.getRoboPose2d().getY())/(m_swerve.getRoboPose2d().getX() - 0.3)));
     if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
@@ -36,12 +44,10 @@ public class Aimlock {
      * @return radians
      */
     public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
-        double Vy = m_swerve.getChassisSpeeds().vyMetersPerSecond + 10*Math.sin(Math.toRadians(getAngleToSpeaker()));
-        double Vx = m_swerve.getChassisSpeeds().vxMetersPerSecond + 10*Math.cos(Math.toRadians(getAngleToSpeaker()));
+        double Vy = m_swerve.getChassisSpeeds().vyMetersPerSecond + Shooter.kShooterSpeed*Math.sin(Math.toRadians(getAngleToSpeaker()));
+        double Vx = m_swerve.getChassisSpeeds().vxMetersPerSecond + Shooter.kShooterSpeed*Math.cos(Math.toRadians(getAngleToSpeaker()));
         return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
     }
-
-    private int targetID = 1;
 
     public void setTarget(int targetID) {
         this.targetID = targetID;
@@ -103,13 +109,13 @@ public class Aimlock {
         double Vx = getDistToSpeaker()*((Math.cos(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
          + (Math.cos(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
         double angle = 2*getVerticalAngleToSpeaker() - Math.atan(Vy/Vx);
-        if(angle >= 32 && angle <= 52)
+        if(angle >= Shooter.kMinAngle && angle <= Shooter.kMaxAngle)
             return angle;
         else {
-            if(angle > 52)
-                return 52;
+            if(angle > Shooter.kMaxAngle)
+                return Shooter.kMaxAngle;
             else
-                return 32;
+                return Shooter.kMinAngle;
         }
     }
 

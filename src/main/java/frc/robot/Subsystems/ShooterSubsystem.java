@@ -31,7 +31,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public ShooterSubsystem() {
         // shooterMotor = new CANSparkMax(Shooter.kShooterMotorID, MotorType.kBrushless);
         AimMotor = new CANSparkMax(Shooter.kShooterAimMotorID, MotorType.kBrushless);
-        AimMotor.getEncoder().setPosition(Units.degreesToRotations(30));
+        AimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
         AimFF = new SimpleMotorFeedforward(0.0, 0.0);
         // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
     }

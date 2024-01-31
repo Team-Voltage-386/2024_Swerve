@@ -281,12 +281,6 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
         updateOdometry();
     }
-
-    boolean speakerMode = true;
-
-    public void toggleMode() {
-        speakerMode = !speakerMode;
-    }
     
     /**
      * Pathplanner uses this method in order to interface with our Drivetrain.
