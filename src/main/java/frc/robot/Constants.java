@@ -45,6 +45,7 @@ public class Constants {
         public static final double kShooterSpeed = 10;
         public static final double kMaxAngle = 32;
         public static final double kMinAngle = 52;
+        public static final double kRollerRPM = 500;
     }
 
     public static class DriveTrain {

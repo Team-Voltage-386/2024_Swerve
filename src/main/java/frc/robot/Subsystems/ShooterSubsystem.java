@@ -16,11 +16,16 @@ import frc.robot.Utils.Aimlock;
 public class ShooterSubsystem extends SubsystemBase {
     private Aimlock m_aim = new Aimlock();
 
-    private CANSparkMax AimMotor;
-    // private CANSparkMax shooterMotor;
+    private CANSparkMax aimMotor;
+    private CANSparkMax shooterMotor;
+    private CANSparkMax rollerMotor;
 
-    private SimpleMotorFeedforward AimFF;
-    // private SimpleMotorFeedforward ShootFF;
+    private SimpleMotorFeedforward aimFF;
+    private SimpleMotorFeedforward ShootFF;
+    private SimpleMotorFeedforward RollFF;
+
+    private boolean hasPiece = false;
+    // private enum shooterState;
 
     /**
      * constraints in degrees
@@ -30,33 +35,36 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public ShooterSubsystem() {
         // shooterMotor = new CANSparkMax(Shooter.kShooterMotorID, MotorType.kBrushless);
-        AimMotor = new CANSparkMax(Shooter.kShooterAimMotorID, MotorType.kBrushless);
-        AimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
-        AimFF = new SimpleMotorFeedforward(0.0, 0.0);
+        aimMotor = new CANSparkMax(Shooter.kShooterAimMotorID, MotorType.kBrushless);
+        aimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
+        aimFF = new SimpleMotorFeedforward(0.0, 0.0);
         // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
     }
 
-    // /**
-    //  * @return Shoot motor RPM
-    //  */
+    /**
+     * @return Shoot motor RPM
+     */
     // public double getShootMotorSpeed() {
     //     return shooterMotor.getEncoder().getVelocity();
     // }
 
     // public void spoolMotors() {
-    //     shooterMotor.setVoltage(ShootFF.calculate(Shooter.kShooterSpeed) + ShootPID.calculate(getShootMotorSpeed(), Shooter.kShooterSpeed));
+    //     if(hasPiece) {
+    //         shooterMotor.setVoltage(ShootFF.calculate(Shooter.kShooterSpeed) + ShootPID.calculate(getShootMotorSpeed(), Shooter.kShooterSpeed));
+    //         rollerMotor.setVoltage(RollFF.calculate(Shooter.kRollerRPM));
+    //     }
     // }
 
     public double getShooterAngle() {
-        return Units.rotationsToDegrees(AimMotor.getEncoder().getPosition());
+        return Units.rotationsToDegrees(aimMotor.getEncoder().getPosition());
     }
 
     public void aimShooter(double targetAngle) {
-        AimMotor.setVoltage(
+        aimMotor.setVoltage(
             AimPID.calculate(
                 getShooterAngle(),
                 targetAngle)
-            + AimFF.calculate(
+            + aimFF.calculate(
                 targetAngle-getShooterAngle())
         );
     }
