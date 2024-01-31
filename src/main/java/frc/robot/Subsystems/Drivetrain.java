@@ -4,19 +4,12 @@
 
 package frc.robot.Subsystems;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import com.ctre.phoenix.sensors.Pigeon2;
-import com.ctre.phoenix.sensors.Pigeon2Configuration;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,7 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -102,7 +94,7 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.turnFeedForward,
             DriveTrain.driveFeedForward);
 
-    private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
+    private final Pigeon2 m_gyro;
 
     private boolean fieldRelative = true;
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
@@ -119,6 +111,7 @@ public class Drivetrain extends SubsystemBase {
             m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
     private final SwerveDriveOdometry m_odometry;
+    private String limelightName = "limelight-a";
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
@@ -126,16 +119,10 @@ public class Drivetrain extends SubsystemBase {
     private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
     private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
 
-    public Drivetrain() {
+    public Drivetrain(Pigeon2 m_gyro) {
         // Zero at beginning of match. Zero = whatever direction the robot (more specifically the gyro) is facing
-        //m_gyro.
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-                this.resetGyro();
-            } catch (Exception e) {
-            }
-        }).start();
+        this.m_gyro = m_gyro;
+        this.resetGyro();
 
         m_odometry = new SwerveDriveOdometry(
             m_kinematics,
@@ -181,13 +168,22 @@ public class Drivetrain extends SubsystemBase {
 
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
-    // if(!usingVision)
+    if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
         return toSpeakerAngle;
-    // else
-        // return getRobotRotToTarg();
+    else
+        return getLLFRAngleToTarget();
     }
 
-    private int targetID = 3;
+    /**
+     * @return radians
+     */
+    public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
+        double Vy = getChassisSpeeds().vyMetersPerSecond + 10*Math.sin(Math.toRadians(getAngleToSpeaker()));
+        double Vx = getChassisSpeeds().vxMetersPerSecond + 10*Math.cos(Math.toRadians(getAngleToSpeaker()));
+        return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
+    }
+
+    private int targetID = 1;
 
     public void setTarget(int targetID) {
         this.targetID = targetID;
@@ -198,16 +194,28 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public boolean hasTarget() {
-        return LimelightHelpers.getFiducialID("") == getTarget();
+        return LimelightHelpers.getFiducialID(limelightName) == getTarget();
     }
 
     /**
      * @return degrees to the target, right is +, left is -
      */
-    public double getAngleToTarget() {
-        if(hasTarget())
-        return LimelightHelpers.getTX("");
+    public double getLLAngleToTarget() {
+        if(hasTarget()) {
+        return LimelightHelpers.getTX(limelightName);
+        }
         else return 0;
+    }
+
+    /**
+     * @return degrees to the target, right is -, left is +
+     */
+    public double getLLFRAngleToTarget() {
+        double angle = getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(limelightName);
+        if(hasTarget())
+            return angle;
+        else 
+            return 0;
     }
 
     public void toggleLockTargetInAuto() {
@@ -215,7 +223,12 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public double getRotationSpeedForTarget() {
-        return -aimFF.calculate(Math.toRadians(getAngleToTarget())) + aimPID.calculate(Math.toRadians(getAngleToTarget()));
+        if(targetID != gamePieceIDs.kSpeakerID)
+            return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) - aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
+        else
+            return hasTarget() 
+            ? aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians())/4 
+            : aimFF.calculate(getSpeakerAimTargetAngle() - getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
     }
 
     /**
@@ -459,8 +472,9 @@ public class Drivetrain extends SubsystemBase {
 
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
+        SmartDashboard.putNumber("limelight FR target angle", getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(""));
         SmartDashboard.putNumber("angle to speaker", getAngleToSpeaker());
-        SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(""));
+        SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(limelightName));
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());

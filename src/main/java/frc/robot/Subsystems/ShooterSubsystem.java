@@ -20,10 +20,10 @@ public class ShooterSubsystem extends SubsystemBase {
     private double motorSpeed;
 
     private CANSparkMax AimMotor;
-    private CANSparkMax shooterMotor;
+    // private CANSparkMax shooterMotor;
 
     private SimpleMotorFeedforward AimFF;
-    private SimpleMotorFeedforward ShootFF;
+    // private SimpleMotorFeedforward ShootFF;
 
     /**
      * constraints in degrees
@@ -35,24 +35,24 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public ShooterSubsystem(Drivetrain m_swerve) {
         this.m_swerve = m_swerve;
-        shooterMotor = new CANSparkMax(Shooter.kShooterMotorID, MotorType.kBrushless);
+        // shooterMotor = new CANSparkMax(Shooter.kShooterMotorID, MotorType.kBrushless);
         AimMotor = new CANSparkMax(Shooter.kShooterAimMotorID, MotorType.kBrushless);
         AimMotor.getEncoder().setPosition(Units.degreesToRotations(30));
         AimFF = new SimpleMotorFeedforward(0.0, 0.0);
-        ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
+        // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
         motorSpeed = 10;
     }
 
-    /**
-     * @return Shoot motor RPM
-     */
-    public double getShootMotorSpeed() {
-        return shooterMotor.getEncoder().getVelocity();
-    }
+    // /**
+    //  * @return Shoot motor RPM
+    //  */
+    // public double getShootMotorSpeed() {
+    //     return shooterMotor.getEncoder().getVelocity();
+    // }
 
-    public void spoolMotors() {
-        shooterMotor.setVoltage(ShootFF.calculate(motorSpeed) + ShootPID.calculate(getShootMotorSpeed(), motorSpeed));
-    }
+    // public void spoolMotors() {
+    //     shooterMotor.setVoltage(ShootFF.calculate(motorSpeed) + ShootPID.calculate(getShootMotorSpeed(), motorSpeed));
+    // }
 
     public double getDistToTag() {
         return (targetTagHeight-limelightHeight)*(1/Math.tan(LimelightHelpers.getTY("")));
