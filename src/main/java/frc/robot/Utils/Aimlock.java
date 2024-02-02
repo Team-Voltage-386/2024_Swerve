@@ -1,6 +1,5 @@
 package frc.robot.Utils;
 
-import frc.robot.RobotContainer;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -20,6 +19,7 @@ public class Aimlock {
         this.m_shooter = m_shooter;
     }
 
+    //PID/FF for chassis rotation speed
     private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
     private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
     
@@ -28,6 +28,7 @@ public class Aimlock {
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
 
+    //set default mode
     static boolean speakerMode = true;
 
     private int targetID = 7;
@@ -36,7 +37,7 @@ public class Aimlock {
         speakerMode = !speakerMode;
     }
 
-
+    //get field relative angle to speaker
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - m_swerve.getRoboPose2d().getY())/(m_swerve.getRoboPose2d().getX() - 0.3)));
     if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
@@ -46,6 +47,7 @@ public class Aimlock {
     }
 
     /**
+     * get field relative target angle for swerve to aim at speaker
      * @return radians
      */
     public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
@@ -67,6 +69,7 @@ public class Aimlock {
     }
 
     /**
+     * robot relative aimbot for non-speaker things
      * @return degrees to the target, right is +, left is -
      */
     public double getLLAngleToTarget() {
@@ -77,6 +80,7 @@ public class Aimlock {
     }
 
     /**
+     * returns field relative angle thats compliant with WPI cause WPI has rotation backwards
      * @return degrees to the target, right is -, left is +
      */
     public double getLLFRAngleToTarget() {
@@ -87,6 +91,10 @@ public class Aimlock {
             return 0;
     }
 
+    /**
+     * calc how fast robot needs to turn to stay with target
+     * @return rot speed
+     */
     public double getRotationSpeedForTarget() {
         if(getTargetID() != gamePieceIDs.kSpeakerID)
             return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) - aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
@@ -95,19 +103,23 @@ public class Aimlock {
             ? aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians())/4 //slow it down cause camera sucks. shouldnt need this with calibrated LL
             : aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
     }
-
+    
+    //pure horizontal distance to tag
     public double getDistToTag() {
         return (targetTagHeight-limelightHeight)*(1/Math.tan(LimelightHelpers.getTY("")));
     }
 
+    //distance to speaker (the hypotenuse, so true distance.)
     public double getDistToSpeaker() {
         return Math.hypot(getDistToTag(), speakerHeight);
     }
 
+    //angle the shooter would need to be at to be pointed directly at the speaker
     public double getVerticalAngleToSpeaker() {
         return Math.atan(speakerHeight/getDistToTag());
     }
 
+    //angle the shooter needs to hit the shot. ask me (Lucas) about the math if you need to cause I dont have time to comment it all rn
     public double getShooterTargetAngle() {
         if(!hasTarget())
             return Shooter.kMinAngle;

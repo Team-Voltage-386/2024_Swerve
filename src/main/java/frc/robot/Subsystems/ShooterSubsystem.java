@@ -1,6 +1,5 @@
 package frc.robot.Subsystems;
 
-import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -9,7 +8,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.ADIS16448_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
@@ -22,13 +20,14 @@ public class ShooterSubsystem extends SubsystemBase {
     // private CANSparkMax rollerMotor;
 
     private SimpleMotorFeedforward aimFF;
-    private SimpleMotorFeedforward ShootFF;
-    private SimpleMotorFeedforward RollFF;
+    // private SimpleMotorFeedforward ShootFF;
+    // private SimpleMotorFeedforward RollFF;
 
+    //if this is true it lets the handoff roller motor and the shooter rollers know to start spinning
     private boolean hasPiece = false;
 
     Aimlock m_aim;
-    // private enum shooterState;
+    // private enum shooterState; //dw abt this rn. will use later to specify if AMP or SPEAKER score mode
 
     /**
      * constraints in degrees
