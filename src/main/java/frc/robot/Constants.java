@@ -18,7 +18,7 @@ public class Constants {
         public static final int kBackLeftTurn = 7;
         public static final int kBackLeftDrive = 8;
 
-        // CanCoder IDs
+        // Swerve CanCoder IDs
         public static final int kFrontLeftCANCoder = 9;
         public static final int kFrontRightCANCoder = 10;
         public static final int kBackRightCANCoder = 11;
@@ -26,6 +26,10 @@ public class Constants {
 
         // Pigeon
         public static final int kGyro = 13;
+
+        // Shooter motor controller IDs
+        public static final int kShooterAimMotorID = 14;
+        public static final int kShooterMotorID = 15;
     }
 
     public static class Deadbands {
@@ -40,8 +44,6 @@ public class Constants {
     }
 
     public static class Shooter {
-        public static final int kShooterAimMotorID = 20;
-        public static final int kShooterMotorID = 21;
         public static final double kShooterSpeed = 10;
         public static final double kMaxAngle = 32;
         public static final double kMinAngle = 52;

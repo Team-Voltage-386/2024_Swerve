@@ -5,32 +5,37 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
-import frc.robot.Constants.DriveTrain;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.Shooter;
 import frc.robot.Constants.gamePieceIDs;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Subsystems.ShooterSubsystem;
 
 public class Aimlock {
-    RobotContainer m_container = new RobotContainer();
-    Drivetrain m_swerve = m_container.getDrivetrain();
-    ShooterSubsystem m_shooter = m_container.getShooter();
+    Drivetrain m_swerve;
+    ShooterSubsystem m_shooter;
+
+    public Aimlock (Drivetrain m_swerve, ShooterSubsystem m_shooter) {
+        this.m_swerve = m_swerve;
+        this.m_shooter = m_shooter;
+    }
 
     private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
     private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
-
-    String limelightName = "limelight-a";
+    
+    private String limelightName = "limelight-a";
     private double limelightHeight = Units.inchesToMeters(24);
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
 
     static boolean speakerMode = true;
 
-    private int targetID = 1;
+    private int targetID = 7;
 
     public static void toggleMode() {
         speakerMode = !speakerMode;
     }
+
 
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - m_swerve.getRoboPose2d().getY())/(m_swerve.getRoboPose2d().getX() - 0.3)));
@@ -104,11 +109,15 @@ public class Aimlock {
     }
 
     public double getShooterTargetAngle() {
+        if(!hasTarget())
+            return Shooter.kMinAngle;
+
         double Vy = getDistToSpeaker()*((Math.sin(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
          + (Math.sin(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vyMetersPerSecond));
         double Vx = getDistToSpeaker()*((Math.cos(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
          + (Math.cos(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
         double angle = 2*getVerticalAngleToSpeaker() - Math.atan(Vy/Vx);
+        SmartDashboard.putNumber("Angle before constraints", angle);
         if(angle >= Shooter.kMinAngle && angle <= Shooter.kMaxAngle)
             return angle;
         else {

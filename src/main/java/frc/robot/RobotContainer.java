@@ -49,17 +49,21 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
   private final CommandXboxController m_manipController = new CommandXboxController(Controller.kManipController);
   private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
-  private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
+  private static final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
   public final Drivetrain m_swerve = new Drivetrain(m_gyro);
-  public final PneumaticSubsystem m_pneumatics = new PneumaticSubsystem();
-  public final ShooterSubsystem m_shooter = new ShooterSubsystem();
+  //public final PneumaticSubsystem m_pneumatics = new PneumaticSubsystem();
+  private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
+  private final Aimlock m_aim = new Aimlock(m_swerve, m_shooter);
   Command driveCommand;
   Command lock;
   Command toggleScoreModeCommand;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    //pass le aimbot
+    m_swerve.setAim(m_aim);
+    m_shooter.setAim(m_aim);
     // Xbox controllers return negative values when we push forward.   
     driveCommand = new Drive(m_swerve);
     lock = new lockTarget(m_swerve);

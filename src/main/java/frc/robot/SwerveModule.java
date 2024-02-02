@@ -251,14 +251,14 @@ public class SwerveModule {
             m_driveMotor.setVoltage(driveOutput + driveFeedforward);
         }
 
-        SmartDashboard.putNumber("voltage to wheels", driveOutput+driveFeedforward);
+        // SmartDashboard.putNumber("voltage to wheels", driveOutput+driveFeedforward);
 
         this.goToPosition(state.angle.getRadians());
 
-        SmartDashboard.putNumber(m_swerveModuleName + " Target Turning Position",
-        state.angle.getRadians());
-        SmartDashboard.putNumber(m_swerveModuleName + " Actual Turning Position",
-        getActualTurningPosition());
+        // SmartDashboard.putNumber(m_swerveModuleName + " Target Turning Position",
+        // state.angle.getRadians());
+        // SmartDashboard.putNumber(m_swerveModuleName + " Actual Turning Position",
+        // getActualTurningPosition());
     }
 
     /**

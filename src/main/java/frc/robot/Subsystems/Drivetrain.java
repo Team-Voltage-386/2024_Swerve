@@ -113,7 +113,7 @@ public class Drivetrain extends SubsystemBase {
 
     private final SwerveDriveOdometry m_odometry;
     private String limelightName = "limelight-a";
-    private Aimlock m_aim = new Aimlock();
+    private Aimlock m_aim;
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
@@ -165,7 +165,10 @@ public class Drivetrain extends SubsystemBase {
         );
     }
 
-
+    
+    public void setAim(Aimlock m_aim) {
+        this.m_aim = m_aim;
+    }
 
     public void toggleLockTargetInAuto() {
         lockTargetInAuto = !lockTargetInAuto;
