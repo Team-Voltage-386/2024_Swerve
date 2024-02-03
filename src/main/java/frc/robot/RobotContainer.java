@@ -117,7 +117,7 @@ public class RobotContainer {
     path1 = AutoBuilder.buildAuto("Vision Test");
     autoChooser.addOption("path", path1);
     // Load the path we want to pathfind to and follow
-    PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
+    PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp Test");
     // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
     PathConstraints constraints = new PathConstraints(
       1, 3.0,

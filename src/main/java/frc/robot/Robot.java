@@ -5,21 +5,21 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.Controller;
+import frc.robot.Utils.LimelightHelpers;
 
 public class Robot extends TimedRobot { 
-    private RobotContainer m_containter;
+    
+    private final RobotContainer m_containter = new RobotContainer();
+
     private Command autonomousCommand;
 
     @Override
     public void robotInit() {
-        m_containter = new RobotContainer();
         autonomousCommand = m_containter.getAutonomousCommand();
     }
 

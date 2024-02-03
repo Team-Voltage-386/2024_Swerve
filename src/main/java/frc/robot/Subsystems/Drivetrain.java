@@ -96,9 +96,13 @@ public class Drivetrain extends SubsystemBase {
 
     private final Pigeon2 m_gyro;
 
+     private String limelightName = "limelight-a";
+
     private boolean fieldRelative = true;
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
     private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
+    private final SimpleWidget m_limelightPose2D = m_driveTab.add("getBotPose2D", "");
+    private final SimpleWidget m_limelightPose2DBlue = m_driveTab.add("getBotPose2DwpiBlue", "");
     private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
 
     /**
@@ -111,7 +115,6 @@ public class Drivetrain extends SubsystemBase {
             m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
     private final SwerveDriveOdometry m_odometry;
-    private String limelightName = "limelight-a";
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
@@ -132,9 +135,7 @@ public class Drivetrain extends SubsystemBase {
                 m_frontRight.getPosition(),
                 m_backLeft.getPosition(),
                 m_backRight.getPosition()
-            },
-            new Pose2d(
-                new Translation2d(2.0, 6.0), Rotation2d.fromDegrees(0.0)));
+            });
         
         robotFieldPosition = getRoboPose2d();
 
@@ -470,6 +471,11 @@ public class Drivetrain extends SubsystemBase {
         m_backRight.setDesiredState(swerveModuleStates[3]);
     }
 
+    public void resetOdoLimelight() {
+        m_limelightPose2D.getEntry().setString(LimelightHelpers.getBotPose2d(limelightName).toString());
+        m_limelightPose2DBlue.getEntry().setString(LimelightHelpers.getBotPose2d_wpiBlue(limelightName).toString());
+    }
+
     /** Updates the field relative position of the robot. */
     public void updateOdometry() {
         SmartDashboard.putNumber("limelight FR target angle", getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(""));
@@ -501,5 +507,10 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("real X Pos", robotFieldPosition.getX());
         SmartDashboard.putNumber("real Y Pos", robotFieldPosition.getY());
         SmartDashboard.putNumber("real Rot", robotFieldPosition.getRotation().getDegrees());
+    }
+
+    @Override
+    public void periodic() {
+        resetOdoLimelight();
     }
 }
