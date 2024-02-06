@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
 import frc.robot.Utils.Aimlock;
+import frc.robot.Utils.LimelightHelpers;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -32,7 +33,7 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * constraints in degrees
      */
-    ProfiledPIDController AimPID = new ProfiledPIDController(0, 0, 0, new Constraints(90, 120));
+    ProfiledPIDController AimPID = new ProfiledPIDController(0.2, 0, 0, new Constraints(90, 120));
     ProfiledPIDController ShootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
 
     public ShooterSubsystem() {
@@ -40,12 +41,16 @@ public class ShooterSubsystem extends SubsystemBase {
         aimMotor = new CANSparkMax(ID.kShooterAimMotorID, MotorType.kBrushless);
         aimMotor.setIdleMode(IdleMode.kBrake);
         aimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
-        aimFF = new SimpleMotorFeedforward(0.0, 0.0);
+        aimFF = new SimpleMotorFeedforward(0.0, 0.001);
         // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
     }
 
     public void setAim(Aimlock m_aim) {
         this.m_aim = m_aim;
+    }
+
+    public void setAimPos(double n) {
+        aimMotor.getEncoder().setPosition(Units.degreesToRotations(n));
     }
 
     /**
@@ -63,7 +68,7 @@ public class ShooterSubsystem extends SubsystemBase {
     // }
 
     public double getShooterAngle() {
-        return Units.rotationsToDegrees(aimMotor.getEncoder().getPosition());
+        return Units.rotationsToDegrees(aimMotor.getEncoder().getPosition())/64; //for the sake of simulating a gear ratio
     }
 
     public void aimShooter(double targetAngle) {
@@ -79,9 +84,10 @@ public class ShooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter angle", getShooterAngle());
-        SmartDashboard.putNumber("Target angle", m_aim.getShooterTargetAngle());
-        SmartDashboard.putNumber("Get vert angle to speaker", m_aim.getVerticalAngleToSpeaker());
-        SmartDashboard.putNumber("Get dist to speaker", m_aim.getDistToSpeaker());
+        SmartDashboard.putNumber("Target angle", (m_aim.getShooterTargetAngle()));
+        SmartDashboard.putNumber("vert angle speaker", Math.toDegrees(m_aim.getVerticalAngleToSpeaker()));
+        SmartDashboard.putNumber("TY", LimelightHelpers.getTY("limelight-a"));
+        SmartDashboard.putNumber("dist speaker", m_aim.getDistToSpeaker());
         aimShooter(m_aim.getShooterTargetAngle());
     }
 }

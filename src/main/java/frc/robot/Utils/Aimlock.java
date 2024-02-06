@@ -21,7 +21,7 @@ public class Aimlock {
 
     //PID/FF for chassis rotation speed
     private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
-    private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
+    private ProfiledPIDController aimPID = new ProfiledPIDController(0.001, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
     
     private String limelightName = "limelight-a";
     private double limelightHeight = Units.inchesToMeters(24);
@@ -53,6 +53,7 @@ public class Aimlock {
     public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
         double Vy = m_swerve.getChassisSpeeds().vyMetersPerSecond + Shooter.kShooterSpeed*Math.sin(Math.toRadians(getAngleToSpeaker()));
         double Vx = m_swerve.getChassisSpeeds().vxMetersPerSecond + Shooter.kShooterSpeed*Math.cos(Math.toRadians(getAngleToSpeaker()));
+        System.out.println(2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx));
         return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
     }
 
@@ -106,7 +107,7 @@ public class Aimlock {
     
     //pure horizontal distance to tag
     public double getDistToTag() {
-        return (targetTagHeight-limelightHeight)*(1/Math.tan(LimelightHelpers.getTY("")));
+        return (targetTagHeight-limelightHeight)/Math.tan(Math.toRadians(LimelightHelpers.getTY(limelightName)));
     }
 
     //distance to speaker (the hypotenuse, so true distance.)
@@ -124,12 +125,16 @@ public class Aimlock {
         if(!hasTarget())
             return Shooter.kMinAngle;
 
-        double Vy = getDistToSpeaker()*((Math.sin(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
-         + (Math.sin(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vyMetersPerSecond));
-        double Vx = getDistToSpeaker()*((Math.cos(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
-         + (Math.cos(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
-        double angle = 2*getVerticalAngleToSpeaker() - Math.atan(Vy/Vx);
-        SmartDashboard.putNumber("Angle before constraints", angle);
+        // double Vy = getDistToSpeaker()*((Math.sin(m_shooter.getShooterAngle())/Shooter.kShooterSpeed) no worky
+        //  + (Math.sin(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vyMetersPerSecond));
+        // double Vx = getDistToSpeaker()*((Math.cos(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
+        //  + (Math.cos(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
+
+        // double angle = Math.toDegrees(2*getVerticalAngleToSpeaker() - Math.atan(Vy/Vx));
+        
+        // SmartDashboard.putNumber("Angle before constraints", angle);
+
+        double angle = Math.toDegrees(getVerticalAngleToSpeaker());
         if(angle >= Shooter.kMinAngle && angle <= Shooter.kMaxAngle)
             return angle;
         else {

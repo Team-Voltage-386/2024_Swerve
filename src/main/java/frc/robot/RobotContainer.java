@@ -138,6 +138,10 @@ public class RobotContainer {
     return m_shooter; //
   }
 
+
+  public Command resetShooterPos() {
+    return Commands.runOnce(()->m_shooter.setAimPos(32), m_shooter);
+  }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *

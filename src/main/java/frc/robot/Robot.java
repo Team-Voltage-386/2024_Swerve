@@ -30,6 +30,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         autonomousCommand.cancel();
+        m_containter.resetShooterPos();
     }
 
     @Override
