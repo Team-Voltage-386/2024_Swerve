@@ -37,7 +37,9 @@ public class Aimlock {
         speakerMode = !speakerMode;
     }
 
-    //get field relative angle to speaker
+    /**
+     * get field relative angle to speaker
+     */
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - m_swerve.getRoboPose2d().getY())/(m_swerve.getRoboPose2d().getX() - 0.3)));
     if(LimelightHelpers.getFiducialID(limelightName) != gamePieceIDs.kSpeakerID)
@@ -115,26 +117,37 @@ public class Aimlock {
         return Math.hypot(getDistToTag(), speakerHeight);
     }
 
-    //angle the shooter would need to be at to be pointed directly at the speaker
+    /**
+     * @return (radians) angle the shooter would need to be at to be pointed directly at the speaker
+     */
     public double getVerticalAngleToSpeaker() {
         return Math.atan(speakerHeight/getDistToTag());
     }
 
     //angle the shooter needs to hit the shot. ask me (Lucas) about the math if you need to cause I dont have time to comment it all rn
+    /**
+     * In degrees, performs math for the necessary shooter angle taking into account swerve velocity.
+     * @return target angle of the shooter
+     */
     public double getShooterTargetAngle() {
         if(!hasTarget())
             return Shooter.kMinAngle;
 
-        // double Vy = getDistToSpeaker()*((Math.sin(m_shooter.getShooterAngle())/Shooter.kShooterSpeed) no worky
-        //  + (Math.sin(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vyMetersPerSecond));
-        // double Vx = getDistToSpeaker()*((Math.cos(m_shooter.getShooterAngle())/Shooter.kShooterSpeed)
-        //  + (Math.cos(getVerticalAngleToSpeaker())/m_swerve.getChassisSpeeds().vxMetersPerSecond));
-
-        // double angle = Math.toDegrees(2*getVerticalAngleToSpeaker() - Math.atan(Vy/Vx));
+        //motion towards target
+        double M = Math.hypot(m_swerve.getChassisSpeeds().vyMetersPerSecond*Math.sin(Math.toRadians(getAngleToSpeaker())),
+            m_swerve.getChassisSpeeds().vxMetersPerSecond*Math.cos(Math.toRadians(getAngleToSpeaker())));
         
-        // SmartDashboard.putNumber("Angle before constraints", angle);
+        //vertical vector
+        double Vy = m_shooter.getDesiredShooterSpeed()*Math.sin(getVerticalAngleToSpeaker()); //change m_shooter.getDesiredShooterSpeed() to getShooterMPS() later
+        //horizontal vector
+        double Vx = m_shooter.getDesiredShooterSpeed()*Math.cos(getVerticalAngleToSpeaker()) + M;
+        //the angle that the shooter WILL shoot at if we aim directly at the target.
+        double realAngle = Math.atan(Vy/Vx);
+        //the angle we NEED to shoot at to hit the target. (just the amount of degrees of error in the other direction)
+        double angle = Math.toDegrees(2*getVerticalAngleToSpeaker() - realAngle);
+        
+        SmartDashboard.putNumber("Angle before constraints", angle);
 
-        double angle = Math.toDegrees(getVerticalAngleToSpeaker());
         if(angle >= Shooter.kMinAngle && angle <= Shooter.kMaxAngle)
             return angle;
         else {

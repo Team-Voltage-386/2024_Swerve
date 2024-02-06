@@ -23,6 +23,8 @@ import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
 import frc.robot.Utils.Aimlock;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
+import frc.robot.Subsystems.PickupSubsystem;
+import frc.robot.Subsystems.PneumaticSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Commands.Drive;
 import frc.robot.Commands.StopDrive;
@@ -42,10 +44,11 @@ public class RobotContainer {
   private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
   private static final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
   public final Drivetrain m_swerve = new Drivetrain(m_gyro);
-  //public final PneumaticSubsystem m_pneumatics = new PneumaticSubsystem();
+  // public final PneumaticSubsystem m_pneumatics = new PneumaticSubsystem();
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
   private final Aimlock m_aim = new Aimlock(m_swerve, m_shooter);
+  private final PickupSubsystem m_pickup = new PickupSubsystem();
   Command driveCommand;
   Command lock;
   Command toggleScoreModeCommand;
@@ -129,6 +132,14 @@ public class RobotContainer {
       0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
     );
   }
+
+  // public Command toggleIntake() {
+  //   return Commands.runOnce(()-> m_pneumatics.toggleIntake(), m_pneumatics);
+  // }
+
+  // public Command toggleLift() {
+  //   return Commands.runOnce(()-> m_pneumatics.toggleLift(), m_pneumatics);
+  // }
 
   public Drivetrain getDrivetrain() {
     return m_swerve;

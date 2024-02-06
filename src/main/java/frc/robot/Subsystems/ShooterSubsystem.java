@@ -11,18 +11,19 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
+import frc.robot.Constants.Shooter;
 import frc.robot.Utils.Aimlock;
 import frc.robot.Utils.LimelightHelpers;
 
 public class ShooterSubsystem extends SubsystemBase {
 
     private CANSparkMax aimMotor;
-    // private CANSparkMax shooterMotor;
-    // private CANSparkMax rollerMotor;
+    private CANSparkMax shooterMotor;
+    private CANSparkMax rollerMotor;
 
     private SimpleMotorFeedforward aimFF;
-    // private SimpleMotorFeedforward ShootFF;
-    // private SimpleMotorFeedforward RollFF;
+    private SimpleMotorFeedforward ShootFF;
+    private SimpleMotorFeedforward RollFF;
 
     //if this is true it lets the handoff roller motor and the shooter rollers know to start spinning
     private boolean hasPiece = false;
@@ -33,16 +34,34 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * constraints in degrees
      */
-    ProfiledPIDController AimPID = new ProfiledPIDController(0.2, 0, 0, new Constraints(90, 120));
-    ProfiledPIDController ShootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
+    ProfiledPIDController aimPID; 
+    ProfiledPIDController shootPID;
+
+    /**
+     * desired note speed in Meters Per Second. set kShooterSpeed to this after testing
+     */
+    double shootSpeed;
 
     public ShooterSubsystem() {
-        // shooterMotor = new CANSparkMax(ID.kShooterMotorID, MotorType.kBrushless);
+        //init aim motor
         aimMotor = new CANSparkMax(ID.kShooterAimMotorID, MotorType.kBrushless);
         aimMotor.setIdleMode(IdleMode.kBrake);
         aimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
+        aimPID = new ProfiledPIDController(0.2, 0, 0, new Constraints(90, 120));
         aimFF = new SimpleMotorFeedforward(0.0, 0.001);
-        // ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
+        
+        //init shooter motor
+        shooterMotor = new CANSparkMax(ID.kShooterMotorID, MotorType.kBrushless);
+        shooterMotor.setIdleMode(IdleMode.kCoast);
+        shootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
+        ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
+
+        //init roller handoff motor
+        rollerMotor = new CANSparkMax(ID.kRollerMotorID, MotorType.kBrushless);
+        rollerMotor.setIdleMode(IdleMode.kBrake);
+
+        //get shooter speed
+        shootSpeed = SmartDashboard.getNumber("ShootSpeed", Shooter.kShooterSpeed);
     }
 
     public void setAim(Aimlock m_aim) {
@@ -56,29 +75,64 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * @return Shoot motor RPM
      */
-    // public double getShootMotorSpeed() {
-    //     return shooterMotor.getEncoder().getVelocity();
-    // }
+    public double getShootMotorRPM() {
+        return shooterMotor.getEncoder().getVelocity();
+    }
 
-    // public void spoolMotors() {
-    //     if(hasPiece) {
-    //         shooterMotor.setVoltage(ShootFF.calculate(Shooter.kShooterSpeed) + ShootPID.calculate(getShootMotorSpeed(), Shooter.kShooterSpeed));
-    //         rollerMotor.setVoltage(RollFF.calculate(Shooter.kRollerRPM));
-    //     }
-    // }
+    /**
+     * @return Shoot motor RPM
+     */
+    public double getShootMotorRPS() {
+        return shooterMotor.getEncoder().getVelocity()/60;
+    }
 
+    /**
+     * @return how fast a note would come out of the shooter in meters per second
+     */
+    public double getShooterMPS() {
+        return getShootMotorRPS()*Math.PI*Units.inchesToMeters(4);
+    }
+
+    /**
+     * set motors spinning at their desired rpms
+     */
+    public void spoolMotors() {
+        if(hasPiece) {
+            shooterMotor.setVoltage(ShootFF.calculate(shootSpeed) + shootPID.calculate(getShooterMPS(), shootSpeed));
+            rollerMotor.setVoltage(RollFF.calculate(Shooter.kRollerRPM));
+        }
+    }
+
+    /**
+     * @return The real angle at which the shooter is pointing.
+     */
     public double getShooterAngle() {
         return Units.rotationsToDegrees(aimMotor.getEncoder().getPosition())/64; //for the sake of simulating a gear ratio
     }
 
+    /**
+     * aim the shooter using PID and FeedForward. pass the aimbot outputs into this
+     * @param targetAngle
+     */
     public void aimShooter(double targetAngle) {
         aimMotor.setVoltage(
-            AimPID.calculate(
+            aimPID.calculate(
                 getShooterAngle(),
                 targetAngle)
             + aimFF.calculate(
                 targetAngle-getShooterAngle())
         );
+    }
+
+    public void updateShootSpeed() {
+        shootSpeed = SmartDashboard.getNumber("ShootSpeed", shootSpeed);
+    }
+
+    /**
+     * @return desired shooter speed in MPS
+     */
+    public double getDesiredShooterSpeed() {
+        return shootSpeed;
     }
 
     @Override
@@ -88,6 +142,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("vert angle speaker", Math.toDegrees(m_aim.getVerticalAngleToSpeaker()));
         SmartDashboard.putNumber("TY", LimelightHelpers.getTY("limelight-a"));
         SmartDashboard.putNumber("dist speaker", m_aim.getDistToSpeaker());
+        updateShootSpeed();
         aimShooter(m_aim.getShooterTargetAngle());
     }
 }
