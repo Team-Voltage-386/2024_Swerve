@@ -18,8 +18,8 @@ import frc.robot.Utils.LimelightHelpers;
 public class ShooterSubsystem extends SubsystemBase {
 
     private CANSparkMax aimMotor;
-    private CANSparkMax shooterMotor;
-    private CANSparkMax rollerMotor;
+    // private CANSparkMax shooterMotor;
+    // private CANSparkMax rollerMotor;
 
     private SimpleMotorFeedforward aimFF;
     private SimpleMotorFeedforward ShootFF;
@@ -29,7 +29,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private boolean hasPiece = false;
 
     Aimlock m_aim;
-    // private enum shooterState; //dw abt this rn. will use later to specify if AMP or SPEAKER score mode
 
     /**
      * constraints in degrees
@@ -51,14 +50,14 @@ public class ShooterSubsystem extends SubsystemBase {
         aimFF = new SimpleMotorFeedforward(0.0, 0.001);
         
         //init shooter motor
-        shooterMotor = new CANSparkMax(ID.kShooterMotorID, MotorType.kBrushless);
-        shooterMotor.setIdleMode(IdleMode.kCoast);
+        // shooterMotor = new CANSparkMax(ID.kShooterMotorID, MotorType.kBrushless);
+        // shooterMotor.setIdleMode(IdleMode.kCoast);
         shootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
         ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
 
         //init roller handoff motor
-        rollerMotor = new CANSparkMax(ID.kRollerMotorID, MotorType.kBrushless);
-        rollerMotor.setIdleMode(IdleMode.kBrake);
+        // rollerMotor = new CANSparkMax(ID.kRollerMotorID, MotorType.kBrushless);
+        // rollerMotor.setIdleMode(IdleMode.kBrake);
 
         //get shooter speed
         shootSpeed = SmartDashboard.getNumber("ShootSpeed", Shooter.kShooterSpeed);
@@ -75,33 +74,33 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * @return Shoot motor RPM
      */
-    public double getShootMotorRPM() {
-        return shooterMotor.getEncoder().getVelocity();
-    }
+    // public double getShootMotorRPM() {
+    //     return shooterMotor.getEncoder().getVelocity();
+    // }
 
     /**
      * @return Shoot motor RPM
      */
-    public double getShootMotorRPS() {
-        return shooterMotor.getEncoder().getVelocity()/60;
-    }
+    // public double getShootMotorRPS() {
+    //     return shooterMotor.getEncoder().getVelocity()/60;
+    // }
 
     /**
      * @return how fast a note would come out of the shooter in meters per second
      */
-    public double getShooterMPS() {
-        return getShootMotorRPS()*Math.PI*Units.inchesToMeters(4);
-    }
+    // public double getShooterMPS() {
+    //     return getShootMotorRPS()*Math.PI*Units.inchesToMeters(4);
+    // }
 
     /**
      * set motors spinning at their desired rpms
      */
-    public void spoolMotors() {
-        if(hasPiece) {
-            shooterMotor.setVoltage(ShootFF.calculate(shootSpeed) + shootPID.calculate(getShooterMPS(), shootSpeed));
-            rollerMotor.setVoltage(RollFF.calculate(Shooter.kRollerRPM));
-        }
-    }
+    // public void spoolMotors() {
+    //     if(hasPiece) {
+    //         shooterMotor.setVoltage(ShootFF.calculate(shootSpeed) + shootPID.calculate(getShooterMPS(), shootSpeed));
+    //         rollerMotor.setVoltage(RollFF.calculate(Shooter.kRollerRPM));
+    //     }
+    // }
 
     /**
      * @return The real angle at which the shooter is pointing.

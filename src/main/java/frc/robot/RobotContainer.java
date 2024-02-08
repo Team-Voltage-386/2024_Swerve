@@ -48,7 +48,7 @@ public class RobotContainer {
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
   private final Aimlock m_aim = new Aimlock(m_swerve, m_shooter);
-  private final PickupSubsystem m_pickup = new PickupSubsystem();
+  // private final PickupSubsystem m_pickup = new PickupSubsystem();
   Command driveCommand;
   Command lock;
   Command toggleScoreModeCommand;

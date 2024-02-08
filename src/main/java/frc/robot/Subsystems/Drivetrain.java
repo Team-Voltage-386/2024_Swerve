@@ -412,6 +412,7 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("limelight FR target angle", getRoboPose2d().getRotation().getDegrees() - LimelightHelpers.getTX(""));
         SmartDashboard.putNumber("angle to speaker", m_aim.getAngleToSpeaker());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(limelightName));
+        SmartDashboard.putNumber("speaker aim angle", Math.toDegrees(m_aim.getSpeakerAimTargetAngle()));
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());

@@ -14,16 +14,24 @@ public class Aimlock {
     Drivetrain m_swerve;
     ShooterSubsystem m_shooter;
 
+    private static enum ShooterState {
+        SPEAKER,
+        AMP,
+        SOURCE
+    } //dw abt this rn. will use later to specify if AMP or SPEAKER score mode
+
+    private static ShooterState shooterState = ShooterState.SPEAKER;
+
     public Aimlock (Drivetrain m_swerve, ShooterSubsystem m_shooter) {
         this.m_swerve = m_swerve;
         this.m_shooter = m_shooter;
     }
 
     //PID/FF for chassis rotation speed
-    private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
-    private ProfiledPIDController aimPID = new ProfiledPIDController(0.001, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
+    private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 30);
+    private ProfiledPIDController aimPID = new ProfiledPIDController(5, 0.02, 1.25, new Constraints(Math.toRadians(180), Math.toRadians(180)));
     
-    private String limelightName = "limelight-a";
+    private static final String limelightName = "limelight-a";
     private double limelightHeight = Units.inchesToMeters(24);
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
@@ -35,6 +43,12 @@ public class Aimlock {
 
     public static void toggleMode() {
         speakerMode = !speakerMode;
+    }
+
+    private static int pipeline = 1;
+
+    public static void setPipeline() {
+        LimelightHelpers.setPipelineIndex(limelightName, pipeline);
     }
 
     /**
@@ -55,7 +69,6 @@ public class Aimlock {
     public double getSpeakerAimTargetAngle() { //when geting apriltag data, must invert dir with negative sign to match swerve (try this on tues)
         double Vy = m_swerve.getChassisSpeeds().vyMetersPerSecond + Shooter.kShooterSpeed*Math.sin(Math.toRadians(getAngleToSpeaker()));
         double Vx = m_swerve.getChassisSpeeds().vxMetersPerSecond + Shooter.kShooterSpeed*Math.cos(Math.toRadians(getAngleToSpeaker()));
-        System.out.println(2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx));
         return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
     }
 
@@ -100,11 +113,11 @@ public class Aimlock {
      */
     public double getRotationSpeedForTarget() {
         if(getTargetID() != gamePieceIDs.kSpeakerID)
-            return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) - aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
+            return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) + aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
         else
             return hasTarget() 
-            ? aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians())/4 //slow it down cause camera sucks. shouldnt need this with calibrated LL
-            : aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians());// + aimPID.calculate(getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle());
+            ? (aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(m_swerve.getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle()))/3 //slow it down cause camera sucks. shouldnt need this with calibrated LL
+            : (aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(m_swerve.getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle()))/3;
     }
     
     //pure horizontal distance to tag
@@ -124,12 +137,15 @@ public class Aimlock {
         return Math.atan(speakerHeight/getDistToTag());
     }
 
-    //angle the shooter needs to hit the shot. ask me (Lucas) about the math if you need to cause I dont have time to comment it all rn
-    /**
-     * In degrees, performs math for the necessary shooter angle taking into account swerve velocity.
-     * @return target angle of the shooter
-     */
-    public double getShooterTargetAngle() {
+    public static ShooterState getShooterState() {
+        return shooterState;
+    }
+
+    public static void setShooterState(ShooterState state) {
+        shooterState = state;
+    }
+
+    public double getShooterTargetAngleSPEAKER() {
         if(!hasTarget())
             return Shooter.kMinAngle;
 
@@ -158,4 +174,28 @@ public class Aimlock {
         }
     }
 
+    public double getShooterTargetAngleAMP() {
+        return Shooter.kMaxAngle;
+    }
+
+    public double getShooterTargetAngleSOURCE() {
+        return Shooter.kMaxAngle;
+    }
+
+    //angle the shooter needs to hit the shot. ask me (Lucas) about the math if you need to cause I dont have time to comment it all rn
+    /**
+     * In degrees, performs math for the necessary shooter angle taking into account swerve velocity.
+     * @return target angle of the shooter
+     */
+    public double getShooterTargetAngle() {
+        double angle = Shooter.kMinAngle;
+        switch(shooterState) {
+            case SPEAKER: {angle = getShooterTargetAngleSPEAKER(); break;}
+            case AMP: {angle =  getShooterTargetAngleAMP(); break;}
+            case SOURCE: {angle = getShooterTargetAngleSOURCE(); break;}
+            default: {break;}
+        }
+        System.out.println("switch isnt working");
+        return angle;
+    } 
 }
