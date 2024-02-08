@@ -116,7 +116,7 @@ public class Aimlock {
             return -aimFF.calculate(Math.toRadians(getLLAngleToTarget())) + aimPID.calculate(Math.toRadians(getLLAngleToTarget()));
         else
             return hasTarget() 
-            ? (aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(m_swerve.getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle()))/3 //slow it down cause camera sucks. shouldnt need this with calibrated LL
+            ? (aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(m_swerve.getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle()))/3 //if you remove the /3 the earth will explode
             : (aimFF.calculate(getSpeakerAimTargetAngle() - m_swerve.getRoboPose2d().getRotation().getRadians()) + aimPID.calculate(m_swerve.getRoboPose2d().getRotation().getRadians(), getSpeakerAimTargetAngle()))/3;
     }
     
