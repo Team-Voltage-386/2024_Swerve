@@ -13,7 +13,7 @@ import frc.robot.Subsystems.ShooterSubsystem;
 public class Aimlock {
     Drivetrain m_swerve;
     ShooterSubsystem m_shooter;
-    private static int pipeline = 1;
+    private static int pipeline;
 
     public static enum DoState {
         NOTE,
@@ -27,7 +27,7 @@ public class Aimlock {
     public Aimlock (Drivetrain m_swerve, ShooterSubsystem m_shooter) {
         this.m_swerve = m_swerve;
         this.m_shooter = m_shooter;
-        LimelightHelpers.setPipelineIndex(limelightName, pipeline);
+        setPipeline(PipeLineID.kNoteID);
     }
 
     //PID/FF for chassis rotation speed
@@ -43,11 +43,19 @@ public class Aimlock {
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
 
+    /**
+     * select the pipeline you want to use
+     * @param pipeLineIndex
+     */
     public static void setPipeline(int pipeLineIndex) {
         LimelightHelpers.setPipelineIndex(limelightName, pipeLineIndex);
         pipeline = pipeLineIndex;
     }
 
+    /**
+     * returns which pipeline is currently being used. (default is note)
+     * @return
+     */
     public static int getPipeLine() {
         return pipeline;
     }
@@ -63,9 +71,9 @@ public class Aimlock {
                 break;
             case SPEAKER: setPipeline(PipeLineID.kSpeakerID);
                 break;
-            case AMP:setPipeline(PipeLineID.kAmpID);
+            case AMP: setPipeline(PipeLineID.kAmpID);
                 break;
-            case SOURCE:setPipeline(PipeLineID.kSourceID);
+            case SOURCE: setPipeline(PipeLineID.kSourceID);
                 break;
             default: setPipeline(PipeLineID.kNoteID);
                 break;
