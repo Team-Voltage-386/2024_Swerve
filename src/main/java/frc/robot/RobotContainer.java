@@ -69,10 +69,11 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
     NamedCommands.registerCommand("StopDrive", new StopDrive(m_swerve));
-    NamedCommands.registerCommand("Lock Target in Auto", Commands.runOnce(()-> m_swerve.toggleLockTargetInAuto(), m_swerve));
+    NamedCommands.registerCommand("Lock Target in Auto", Commands.runOnce(()-> m_swerve.setLockTargetInAuto(true), m_swerve));
+    NamedCommands.registerCommand("Dont Lock Target in Auto", Commands.runOnce(()-> m_swerve.setLockTargetInAuto(false), m_swerve));
 
     // Configure the trigger bindings
-    pathPlannerStuff();
+    configPathPlannerStuff();
     configureBindings();
     autoChooser.setDefaultOption("Autonomous Command", path1);
     // Configure the button bindings
@@ -113,7 +114,7 @@ public class RobotContainer {
 
   Command path1;
   Command pathfindAmp;
-  private void pathPlannerStuff() {
+  private void configPathPlannerStuff() {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
     //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path

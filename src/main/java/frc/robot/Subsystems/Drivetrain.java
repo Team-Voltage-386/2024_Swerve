@@ -170,8 +170,9 @@ public class Drivetrain extends SubsystemBase {
         this.m_aim = m_aim;
     }
 
-    public void toggleLockTargetInAuto() {
-        lockTargetInAuto = !lockTargetInAuto;
+    public void setLockTargetInAuto(boolean lock) {
+        System.out.println("toggled auto lock to" + lockTargetInAuto);
+        lockTargetInAuto = lock;
     }
 
     /**
@@ -324,27 +325,33 @@ public class Drivetrain extends SubsystemBase {
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
         if(m_aim.hasTarget() || m_aim.getTargetID() == gamePieceIDs.kSpeakerID) {
-                rotSpeed = m_aim.getRotationSpeedForTarget();
-                SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
-                if(hardLocked) {
-                        swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                                new ChassisSpeeds(xSpeed, 0, rotSpeed)
-                        );
-                }
-                else {
-                        swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                                ChassisSpeeds.fromFieldRelativeSpeeds(
-                                        xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
-                                )
-                        );
-                }
+            rotSpeed = m_aim.getRotationSpeedForTarget();
+            SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
+            if(hardLocked) {
+                    swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                            new ChassisSpeeds(xSpeed, 0, rotSpeed)
+                    );
+            }
+            else {
+                    swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                            ChassisSpeeds.fromFieldRelativeSpeeds(
+                                    xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d()
+                            )
+                    );
+            }
         }
         else {
+            if(hardLocked) {
+                    swerveModuleStates = m_kinematics.toSwerveModuleStates(
+                            new ChassisSpeeds(xSpeed, 0, rotSpeed)
+                    );
+            }
+            else {
                 swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                fieldRelative
-                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed,
-                                getGyroYawRotation2d())
-                        : new ChassisSpeeds(xSpeed, ySpeed, rotSpeed));
+                    fieldRelative
+                    ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rotSpeed, getGyroYawRotation2d())
+                    : new ChassisSpeeds(xSpeed, ySpeed, rotSpeed));
+            }
         }
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, kMaxPossibleSpeed);
@@ -413,6 +420,7 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("angle to speaker", m_aim.getAngleToSpeaker());
         SmartDashboard.putNumber("ID", LimelightHelpers.getFiducialID(limelightName));
         SmartDashboard.putNumber("speaker aim angle", Math.toDegrees(m_aim.getSpeakerAimTargetAngle()));
+        SmartDashboard.putNumber("LL RR targ angle", m_aim.getLLAngleToTarget());
         m_odometry.update(
                 getGyroYawRotation2d(),
                 getModulePositions());
