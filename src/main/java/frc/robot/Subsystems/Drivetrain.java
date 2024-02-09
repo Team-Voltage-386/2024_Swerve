@@ -31,10 +31,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ID;
 import frc.robot.Constants.Offsets;
 import frc.robot.Utils.LimelightHelpers;
+import frc.robot.Utils.Aimlock.DoState;
 import frc.robot.Utils.Aimlock;
 import frc.robot.SwerveModule;
 import frc.robot.Constants.DriveTrain;
-import frc.robot.Constants.gamePieceIDs;
+import frc.robot.Constants.PipeLineID;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain extends SubsystemBase {
@@ -297,7 +298,7 @@ public class Drivetrain extends SubsystemBase {
                 lockTargetInAuto
                         ? ChassisSpeeds.fromRobotRelativeSpeeds(chassisSpeeds.vxMetersPerSecond, 
                             chassisSpeeds.vyMetersPerSecond, 
-                            m_aim.hasTarget() ? m_aim.getRotationSpeedForTarget() : chassisSpeeds.omegaRadiansPerSecond, //comment
+                            Aimlock.hasTarget() ? m_aim.getRotationSpeedForTarget() : chassisSpeeds.omegaRadiansPerSecond, //comment
                             getGyroYawRotation2d())
                         : chassisSpeeds);
 
@@ -324,7 +325,7 @@ public class Drivetrain extends SubsystemBase {
      */
     public void lockPiece(double xSpeed, double ySpeed, double rotSpeed, boolean fieldRelative, boolean hardLocked) {
         SwerveModuleState[] swerveModuleStates; //MAKE SURE swervestates can be init like this with this kinda array
-        if(m_aim.hasTarget() || m_aim.getTargetID() == gamePieceIDs.kSpeakerID) {
+        if(Aimlock.hasTarget() || Aimlock.getDoState() == DoState.SPEAKER) {
             rotSpeed = m_aim.getRotationSpeedForTarget();
             SmartDashboard.putNumber("rotSpeed deg", Math.toDegrees(rotSpeed));
             if(hardLocked) {

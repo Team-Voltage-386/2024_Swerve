@@ -5,9 +5,11 @@ import frc.robot.Subsystems.Drivetrain;
 
 public class resetOdo extends Command {
     Drivetrain dt;
+    int i;
 
     public resetOdo(Drivetrain dt) {
         this.dt = dt;
+        i = 0;
     }
 
     @Override
@@ -15,11 +17,17 @@ public class resetOdo extends Command {
         System.out.println("resetting odometry");
         dt.resetGyro();
         dt.resetOdo();
-        dt.resetOdo(); //yes, call it twice.
+    }
+
+    @Override
+    public void execute() {
+        dt.resetGyro();
+        dt.resetOdo();
+        i++;
     }
 
     @Override
     public boolean isFinished() {
-        return true;
+        return i > 1;
     }
 }

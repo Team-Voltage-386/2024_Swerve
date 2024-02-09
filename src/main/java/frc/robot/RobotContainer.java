@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix.sensors.Pigeon2;
+import com.fasterxml.jackson.databind.module.SimpleKeyDeserializers;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathConstraints;
@@ -21,6 +22,7 @@ import frc.robot.Constants.Controller;
 import frc.robot.Constants.ID;
 import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
 import frc.robot.Utils.Aimlock;
+import frc.robot.Utils.Aimlock.DoState;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Subsystems.PickupSubsystem;
@@ -50,8 +52,6 @@ public class RobotContainer {
   private final Aimlock m_aim = new Aimlock(m_swerve, m_shooter);
   // private final PickupSubsystem m_pickup = new PickupSubsystem();
   Command driveCommand;
-  Command lock;
-  Command toggleScoreModeCommand;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -60,15 +60,13 @@ public class RobotContainer {
     m_shooter.setAim(m_aim);
     // Xbox controllers return negative values when we push forward.   
     driveCommand = new Drive(m_swerve);
-    lock = new lockTarget(m_swerve);
-    toggleScoreModeCommand = Commands.runOnce(()->Aimlock.toggleMode());
     m_swerve.setDefaultCommand(driveCommand);
     
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()'
     // Create choices for autonomous functions in the Smart Dashboard
     SmartDashboard.putData("Auto Mode", autoChooser);
     // Register named commands
-    NamedCommands.registerCommand("StopDrive", new StopDrive(m_swerve));
+    NamedCommands.registerCommand("StopDrive", new StopDrive(m_swerve)); //dont need anymore (?)
     NamedCommands.registerCommand("Lock Target in Auto", Commands.runOnce(()-> m_swerve.setLockTargetInAuto(true), m_swerve));
     NamedCommands.registerCommand("Dont Lock Target in Auto", Commands.runOnce(()-> m_swerve.setLockTargetInAuto(false), m_swerve));
 
@@ -92,7 +90,7 @@ public class RobotContainer {
 
 
     //drive cont bindings
-    m_driveController.leftBumper().onTrue(lock);
+    m_driveController.leftBumper().onTrue(new lockTarget(m_swerve));
     m_driveController.rightBumper().onTrue((new resetOdo(m_swerve)));
     m_driveController.x().whileTrue(pathfindAmp);
     /*
@@ -107,9 +105,10 @@ public class RobotContainer {
         m_driveController.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
 
     //manip cont bindings
-    // m_manipController.x().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kNoteID)));
-    // m_manipController.y().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kSpeakerID)));
-    // m_manipController.b().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kAmpID)));
+    m_manipController.x().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.NOTE)));
+    m_manipController.a().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.SPEAKER)));
+    m_manipController.b().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.AMP)));
+    m_manipController.y().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.SOURCE)));
   }
 
   Command path1;

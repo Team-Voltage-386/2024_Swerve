@@ -5,8 +5,8 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants.PipeLineID;
 import frc.robot.Constants.Shooter;
-import frc.robot.Constants.gamePieceIDs;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Subsystems.ShooterSubsystem;
 
@@ -15,13 +15,14 @@ public class Aimlock {
     ShooterSubsystem m_shooter;
     private static int pipeline = 1;
 
-    private static enum ShooterState {
+    public static enum DoState {
+        NOTE,
         SPEAKER,
         AMP,
         SOURCE
     } //dw abt this rn. will use later to specify if AMP or SPEAKER score mode
 
-    private static ShooterState shooterState = ShooterState.SPEAKER;
+    private static DoState doState = DoState.SPEAKER;
 
     public Aimlock (Drivetrain m_swerve, ShooterSubsystem m_shooter) {
         this.m_swerve = m_swerve;
@@ -42,17 +43,37 @@ public class Aimlock {
     private double targetTagHeight = Units.inchesToMeters(51.88);
     private double speakerHeight = Units.inchesToMeters(82);
 
-    //set default mode
-    static boolean speakerMode = true;
-
-    private int targetID = 1;
-
-    public static void toggleMode() {
-        speakerMode = !speakerMode;
+    public static void setPipeline(int pipeLineIndex) {
+        LimelightHelpers.setPipelineIndex(limelightName, pipeLineIndex);
+        pipeline = pipeLineIndex;
     }
 
-    public static void setPipeline(int pl) {
-        LimelightHelpers.setPipelineIndex(limelightName, pl);
+    public static int getPipeLine() {
+        return pipeline;
+    }
+
+    public static DoState getDoState() {
+        return doState;
+    }
+
+    public static void setDoState(DoState state) {
+        doState = state;
+        switch(doState) {
+            case NOTE: setPipeline(PipeLineID.kNoteID);
+                break;
+            case SPEAKER: setPipeline(PipeLineID.kSpeakerID);
+                break;
+            case AMP:setPipeline(PipeLineID.kAmpID);
+                break;
+            case SOURCE:setPipeline(PipeLineID.kSourceID);
+                break;
+            default: setPipeline(PipeLineID.kNoteID);
+                break;
+        }
+    }
+
+    public static boolean hasTarget() {
+        return LimelightHelpers.getTV(limelightName);
     }
 
     /**
@@ -71,21 +92,6 @@ public class Aimlock {
         double Vy = m_swerve.getChassisSpeeds().vyMetersPerSecond + Shooter.kShooterSpeed*Math.sin(Math.toRadians(getAngleToSpeaker()));
         double Vx = m_swerve.getChassisSpeeds().vxMetersPerSecond + Shooter.kShooterSpeed*Math.cos(Math.toRadians(getAngleToSpeaker()));
         return 2*Math.toRadians(getAngleToSpeaker()) - Math.atan(Vy/Vx);
-    }
-
-    public void setTarget(int targetID) {
-        this.targetID = targetID;
-    }
-
-    public int getTargetID() {
-        return this.targetID;
-    }
-
-    public boolean hasTarget() {
-        if(pipeline == 1)
-            return LimelightHelpers.getTV(limelightName);
-        else
-            return LimelightHelpers.getFiducialID(limelightName) == getTargetID();
     }
 
     /**
@@ -116,7 +122,7 @@ public class Aimlock {
      * @return rot speed
      */
     public double getRotationSpeedForTarget() {
-        if(getTargetID() != gamePieceIDs.kSpeakerID) {
+        if(doState != DoState.SPEAKER) {
             return -RRaimFF.calculate(Math.toRadians(getLLAngleToTarget())) + RRaimPID.calculate(Math.toRadians(getLLAngleToTarget()));
         }
         else
@@ -139,14 +145,6 @@ public class Aimlock {
      */
     public double getVerticalAngleToSpeaker() {
         return Math.atan(speakerHeight/getDistToTag());
-    }
-
-    public static ShooterState getShooterState() {
-        return shooterState;
-    }
-
-    public static void setShooterState(ShooterState state) {
-        shooterState = state;
     }
 
     public double getShooterTargetAngleSPEAKER() {
@@ -192,15 +190,14 @@ public class Aimlock {
      * @return target angle of the shooter
      */
     public double getShooterTargetAngle() {
-        // double angle = Shooter.kMinAngle;
-        // switch(shooterState) {
-        //     case SPEAKER: {angle = getShooterTargetAngleSPEAKER(); break;}
-        //     case AMP: {angle =  getShooterTargetAngleAMP(); break;}
-        //     case SOURCE: {angle = getShooterTargetAngleSOURCE(); break;}
-        //     default: {break;}
-        // }
-        // System.out.println("switch isnt working");
-        // return angle;
-        return getShooterTargetAngleSPEAKER();
+        double angle = Shooter.kMinAngle;
+        switch(doState) {
+            case NOTE: break;
+            case SPEAKER: angle = getShooterTargetAngleSPEAKER(); break;
+            case AMP: angle =  getShooterTargetAngleAMP(); break;
+            case SOURCE: angle = getShooterTargetAngleSOURCE(); break;
+            default: break;
+        }
+        return angle;
     } 
 }

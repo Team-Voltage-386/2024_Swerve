@@ -38,10 +38,11 @@ public class Constants {
         public static final double kRightJoyStickDeadband = 0.1;
     }
 
-    public static class gamePieceIDs { //todo update these to actually use them in game
-        public static final int kNoteID = 2;
-        public static final int kSpeakerID = 7;
-        public static final int kAmpID = 4;
+    public static class PipeLineID { //todo update these to actually use them in game
+        public static final int kNoteID = 0;
+        public static final int kSpeakerID = 1;
+        public static final int kAmpID = 2;
+        public static final int kSourceID = 3;
     }
 
     public static class Shooter {
