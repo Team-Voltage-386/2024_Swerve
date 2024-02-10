@@ -520,6 +520,10 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("real Rot", robotFieldPosition.getRotation().getDegrees());
     }
 
+    public boolean isLLOdoGood(double timeThreshold) {
+        return !m_llTimeSinceUpdate.hasElapsed(timeThreshold);
+    }
+
     @Override
     public void periodic() {
         updateOdometry();

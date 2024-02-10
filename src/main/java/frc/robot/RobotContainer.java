@@ -28,6 +28,7 @@ import frc.robot.Constants.Controller;
 import frc.robot.Constants.Deadbands;
 import frc.robot.Constants.ID;
 import frc.robot.Subsystems.CameraSubsystem.CameraSourceOption;
+import frc.robot.Subsystems.RumbleSubsystem;
 import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Commands.Drive;
@@ -50,6 +51,7 @@ public class RobotContainer {
   private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
   public final Drivetrain m_swerve = new Drivetrain(m_gyro);
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
+  private final RumbleSubsystem m_rumbleSubsystem = new RumbleSubsystem(m_driveController);
   Command driveCommand;
   Command lock;
   Command toggleScoreModeCommand;
@@ -111,6 +113,9 @@ public class RobotContainer {
         m_driveController.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
         //m_driveController.setRumble(RumbleType.kLeftRumble, 1);
         //m_driveContoller.setRumble(RumbleType.kLeftRumble, 1);
+    new Trigger(() -> m_swerve.isLLOdoGood(10.0)).whileTrue(m_rumbleSubsystem.setRumbleCommand(RumbleType.kBothRumble, 0.5, 0.25));
+
+    
 
     //manip cont bindings
     // m_manipController.x().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kNoteID)));
