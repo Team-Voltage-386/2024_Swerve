@@ -22,6 +22,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
@@ -101,7 +102,8 @@ public class Drivetrain extends SubsystemBase {
     private boolean fieldRelative = true;
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
     private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
-    private final SimpleWidget m_limelightPose2D = m_driveTab.add("getBotPose2D", "");
+    private final SimpleWidget m_llTimeSinceUpdateOdo = m_driveTab.add("Time Since LL Odo Update", 0);
+    private Timer m_llTimeSinceUpdate = new Timer();
     private final SimpleWidget m_limelightPose2DBlue = m_driveTab.add("getBotPose2DwpiBlue", "");
     private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
 
@@ -164,6 +166,8 @@ public class Drivetrain extends SubsystemBase {
                 },
                 this // Reference to this subsystem to set requirements
         );
+
+        m_llTimeSinceUpdate.start();
     }
 
 
@@ -340,7 +344,7 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired X Speed", xSpeed);
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
-        updateOdometry();
+        //updateOdometry();
     }
 
     boolean speakerMode = true;
@@ -375,7 +379,7 @@ public class Drivetrain extends SubsystemBase {
         m_frontRight.setDesiredState(swerveModuleStates[1]);
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
-        updateOdometry();
+        //updateOdometry();
     }
 
     /**
@@ -422,7 +426,7 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired X Speed", xSpeed);
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
-        updateOdometry();
+        //updateOdometry();
     }
 
 
@@ -472,8 +476,15 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void resetOdoLimelight() {
-        m_limelightPose2D.getEntry().setString(LimelightHelpers.getBotPose2d(limelightName).toString());
         m_limelightPose2DBlue.getEntry().setString(LimelightHelpers.getBotPose2d_wpiBlue(limelightName).toString());
+        LimelightHelpers.LimelightResults  llResults = LimelightHelpers.getLatestResults(limelightName);
+        int numTargets = llResults.targetingResults.targets_Fiducials.length;
+        m_llTimeSinceUpdateOdo.getEntry().setDouble(m_llTimeSinceUpdate.get());
+        if (numTargets > 1) {
+            m_odometry.resetPosition(getGyroYawRotation2d(), this.getModulePositions(), LimelightHelpers.getBotPose2d_wpiBlue(limelightName));
+            m_llTimeSinceUpdate.reset();
+        }
+        
     }
 
     /** Updates the field relative position of the robot. */
@@ -511,6 +522,7 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
+        updateOdometry();
         resetOdoLimelight();
     }
 }

@@ -17,6 +17,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -90,17 +91,26 @@ public class RobotContainer {
     //drive cont bindings
     m_driveController.leftBumper().onTrue(lock);
     m_driveController.rightBumper().onTrue((new resetOdo(m_swerve)));
-    m_driveController.x().whileTrue(pathfindAmp);
+    m_driveController.x().whileTrue(AutoBuilder.pathfindThenFollowPath(
+      PathPlannerPath.fromPathFile("Pathfind Test"),
+      new PathConstraints(
+      1, 3.0,
+      Units.degreesToRadians(540), Units.degreesToRadians(720)),
+      0.0
+    ));
+    m_driveController.b().onTrue(Commands.runOnce(() -> this.m_swerve.resetOdoLimelight(), this.m_swerve));
     /*
          * Y = forward camera
          * A = back camera
          */
         m_driveController.y().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.USB_CAMERA)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.BACKWARD)));
-        m_driveController.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
+        //m_driveController.b().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.FISHEYE));
         m_driveController.a().onTrue(this.m_cameraSubsystem.setSourceCommand(CameraSourceOption.LIMELIGHT)
                 .alongWith(this.m_swerve.setDirectionOptionCommand(Drivetrain.DirectionOption.FORWARD)));
         m_driveController.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
+        //m_driveController.setRumble(RumbleType.kLeftRumble, 1);
+        //m_driveContoller.setRumble(RumbleType.kLeftRumble, 1);
 
     //manip cont bindings
     // m_manipController.x().onTrue(Commands.runOnce(()-> m_swerve.setTarget(gamePieceIDs.kNoteID)));
@@ -117,7 +127,7 @@ public class RobotContainer {
     path1 = AutoBuilder.buildAuto("Vision Test");
     autoChooser.addOption("path", path1);
     // Load the path we want to pathfind to and follow
-    PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp Test");
+    PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
     // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
     PathConstraints constraints = new PathConstraints(
       1, 3.0,
