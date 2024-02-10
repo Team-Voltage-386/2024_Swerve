@@ -23,9 +23,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.ComplexWidget;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -120,6 +123,8 @@ public class Drivetrain extends SubsystemBase {
 
     private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
     private Pose2d robotFieldPosition;
+    private final Field2d m_field = new Field2d();
+    private final ComplexWidget m_fieldGenericEntry;
     private boolean lockTargetInAuto = false;
     private SimpleMotorFeedforward aimFF = new SimpleMotorFeedforward(0.0, 8);
     private ProfiledPIDController aimPID = new ProfiledPIDController(0.05, 0, 0.0, new Constraints(Math.toRadians(180), Math.toRadians(180)));
@@ -168,8 +173,10 @@ public class Drivetrain extends SubsystemBase {
         );
 
         m_llTimeSinceUpdate.start();
-    }
 
+        m_fieldGenericEntry = m_driveTab.add("Field", m_field)
+            .withWidget(BuiltInWidgets.kField);
+    }
 
     public double getAngleToSpeaker() {
         double toSpeakerAngle = Math.toDegrees(Math.atan((5.55 - getRoboPose2d().getY())/(getRoboPose2d().getX() - 0.3)));
@@ -518,6 +525,8 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("real X Pos", robotFieldPosition.getX());
         SmartDashboard.putNumber("real Y Pos", robotFieldPosition.getY());
         SmartDashboard.putNumber("real Rot", robotFieldPosition.getRotation().getDegrees());
+
+        m_field.setRobotPose(m_odometry.getPoseMeters());
     }
 
     public boolean isLLOdoGood(double timeThreshold) {
