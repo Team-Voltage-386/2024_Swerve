@@ -21,10 +21,6 @@ public class Drive extends Command {
         addRequirements(dt);
     }
 
-    public void schedule() {
-        System.out.println("Driving.");
-    }
-
     private double xSpeed;
     private double ySpeed;
     private double rotSpeed;

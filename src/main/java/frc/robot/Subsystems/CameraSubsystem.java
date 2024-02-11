@@ -10,11 +10,17 @@ import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cscore.VideoSink;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 import edu.wpi.first.cscore.VideoSource.ConnectionStrategy;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.PixelFormat;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Utils.LimelightHelpers;
 
 public class CameraSubsystem extends SubsystemBase {
   UsbCamera usbCamera;
@@ -22,6 +28,12 @@ public class CameraSubsystem extends SubsystemBase {
   HttpCamera limelightCamera;
   NetworkTableEntry cameraSelection;
   VideoSink server;
+
+    ShuffleboardTab m_cameraTab = Shuffleboard.getTab("camera tab");
+    private final SimpleWidget m_llTimeSinceUpdateOdo = m_cameraTab.add("Time Since LL Odo Update", 0);
+    private Timer m_llTimeSinceUpdate = new Timer();
+    private final SimpleWidget m_limelightPose2DBlue = m_cameraTab.add("getBotPose2DwpiBlue", "");
+    private static String limelightName = "limelight-a";
 
   public CameraSubsystem() {
     // Creates UsbCamera and MjpegServer [1] and connects them
@@ -43,6 +55,10 @@ public class CameraSubsystem extends SubsystemBase {
     this.usbCamera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
     //this.fisheyeCamera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
     this.limelightCamera.setConnectionStrategy(ConnectionStrategy.kKeepOpen);
+  }
+
+  public static String getLimelightName() {
+      return limelightName;
   }
 
   /**
@@ -92,5 +108,23 @@ public class CameraSubsystem extends SubsystemBase {
         break;
       }
     }
+  }
+
+  public Pose2d resetOdoLimelight() {
+        m_limelightPose2DBlue.getEntry().setString(LimelightHelpers.getBotPose2d_wpiBlue(limelightName).toString());
+        LimelightHelpers.LimelightResults  llResults = LimelightHelpers.getLatestResults(limelightName);
+        int numTargets = llResults.targetingResults.targets_Fiducials.length;
+        m_llTimeSinceUpdateOdo.getEntry().setDouble(m_llTimeSinceUpdate.get());
+        if (numTargets > 1) {
+          m_llTimeSinceUpdate.reset();
+          return LimelightHelpers.getBotPose2d_wpiBlue(limelightName);
+        }
+        else{
+          return null;
+        } 
+    }
+
+    public boolean isLLOdoGood(double timeThreshold) {
+      return !m_llTimeSinceUpdate.hasElapsed(timeThreshold);
   }
 }

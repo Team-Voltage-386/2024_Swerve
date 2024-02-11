@@ -21,9 +21,9 @@ public class ShooterSubsystem extends SubsystemBase {
     // private CANSparkMax shooterMotor;
     // private CANSparkMax rollerMotor;
 
-    private SimpleMotorFeedforward aimFF;
-    private SimpleMotorFeedforward ShootFF;
-    private SimpleMotorFeedforward RollFF;
+    private SimpleMotorFeedforward m_aimFF;
+    private SimpleMotorFeedforward m_shootFF;
+    private SimpleMotorFeedforward m_rollFF;
 
     //if this is true it lets the handoff roller motor and the shooter rollers know to start spinning
     private boolean hasPiece = false;
@@ -33,8 +33,8 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * constraints in degrees
      */
-    ProfiledPIDController aimPID; 
-    ProfiledPIDController shootPID;
+    ProfiledPIDController m_aimPID; 
+    ProfiledPIDController m_shootPID;
 
     /**
      * desired note speed in Meters Per Second. set kShooterSpeed to this after testing
@@ -46,14 +46,14 @@ public class ShooterSubsystem extends SubsystemBase {
         aimMotor = new CANSparkMax(ID.kShooterAimMotorID, MotorType.kBrushless);
         aimMotor.setIdleMode(IdleMode.kBrake);
         aimMotor.getEncoder().setPosition(Units.degreesToRotations(32));
-        aimPID = new ProfiledPIDController(0.2, 0, 0, new Constraints(90, 120));
-        aimFF = new SimpleMotorFeedforward(0.0, 0.001);
+        m_aimPID = new ProfiledPIDController(0.2, 0, 0, new Constraints(90, 120));
+        m_aimFF = new SimpleMotorFeedforward(0.0, 0.001);
         
         //init shooter motor
         // shooterMotor = new CANSparkMax(ID.kShooterMotorID, MotorType.kBrushless);
         // shooterMotor.setIdleMode(IdleMode.kCoast);
-        shootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
-        ShootFF = new SimpleMotorFeedforward(0.0, 0.0);
+        m_shootPID = new ProfiledPIDController(0, 0, 0, new Constraints(10, 10));
+        m_shootFF = new SimpleMotorFeedforward(0.0, 0.0);
 
         //init roller handoff motor
         // rollerMotor = new CANSparkMax(ID.kRollerMotorID, MotorType.kBrushless);
@@ -115,10 +115,10 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void aimShooter(double targetAngle) {
         aimMotor.setVoltage(
-            aimPID.calculate(
+            m_aimPID.calculate(
                 getShooterAngle(),
                 targetAngle)
-            + aimFF.calculate(
+            + m_aimFF.calculate(
                 targetAngle-getShooterAngle())
         );
     }

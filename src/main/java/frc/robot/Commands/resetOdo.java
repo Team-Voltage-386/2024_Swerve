@@ -14,7 +14,6 @@ public class resetOdo extends Command {
 
     @Override
     public void schedule() {
-        System.out.println("resetting odometry");
         dt.resetGyro();
         dt.resetOdo();
     }
