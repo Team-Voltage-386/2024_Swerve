@@ -22,6 +22,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
@@ -102,6 +103,10 @@ public class Drivetrain extends SubsystemBase {
     private DirectionOption m_forwardDirection = DirectionOption.FORWARD;
     private final ShuffleboardTab m_driveTab = Shuffleboard.getTab("drive subsystem");
     private final SimpleWidget m_fieldRelativeWidget = m_driveTab.add("drive field relative", fieldRelative);
+
+    private final SimpleWidget m_llTimeSinceUpdateOdo = m_driveTab.add("Time Since LL Odo Update", 0);
+    private Timer m_llTimeSinceUpdate = new Timer();
+    private final SimpleWidget m_limelightPose2DBlue = m_driveTab.add("getBotPose2DwpiBlue", "");
 
     /**
      * The order that you initialize these is important! Later uses of functions
@@ -284,7 +289,6 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired X Speed", xSpeed);
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
-        updateOdometry();
     }
     
     /**
@@ -313,7 +317,18 @@ public class Drivetrain extends SubsystemBase {
         m_frontRight.setDesiredState(swerveModuleStates[1]);
         m_backLeft.setDesiredState(swerveModuleStates[2]);
         m_backRight.setDesiredState(swerveModuleStates[3]);
-        updateOdometry();
+    }
+
+    public void resetOdoLimelight() {
+        m_limelightPose2DBlue.getEntry().setString(LimelightHelpers.getBotPose2d_wpiBlue(limelightName).toString());
+        LimelightHelpers.LimelightResults  llResults = LimelightHelpers.getLatestResults(limelightName);
+        int numTargets = llResults.targetingResults.targets_Fiducials.length;
+        m_llTimeSinceUpdateOdo.getEntry().setDouble(m_llTimeSinceUpdate.get());
+        if (numTargets > 1) {
+            m_odometry.resetPosition(getGyroYawRotation2d(), this.getModulePositions(), LimelightHelpers.getBotPose2d_wpiBlue(limelightName));
+            m_llTimeSinceUpdate.reset();
+        }
+        
     }
 
     /**
@@ -366,7 +381,6 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("desired X Speed", xSpeed);
         SmartDashboard.putNumber("desired Y Speed", ySpeed);
         SmartDashboard.putNumber("desired Rot Speed", Math.toDegrees(rotSpeed));
-        updateOdometry();
     }
 
 
@@ -448,5 +462,15 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("real X Pos", robotFieldPosition.getX());
         SmartDashboard.putNumber("real Y Pos", robotFieldPosition.getY());
         SmartDashboard.putNumber("real Rot", robotFieldPosition.getRotation().getDegrees());
+    }
+
+    public boolean isLLOdoGood(double timeThreshold) {
+        return !m_llTimeSinceUpdate.hasElapsed(timeThreshold);
+    }
+
+    @Override
+    public void periodic() {
+        resetOdoLimelight();
+        updateOdometry();
     }
 }

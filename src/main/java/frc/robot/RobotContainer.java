@@ -12,6 +12,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,6 +28,7 @@ import frc.robot.Subsystems.CameraSubsystem;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Subsystems.PickupSubsystem;
 import frc.robot.Subsystems.PneumaticSubsystem;
+import frc.robot.Subsystems.RumbleSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Commands.Drive;
 import frc.robot.Commands.StopDrive;
@@ -50,6 +52,7 @@ public class RobotContainer {
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final CameraSubsystem m_cameraSubsystem = new CameraSubsystem();
   private final Aimlock m_aim = new Aimlock(m_swerve, m_shooter);
+  private final RumbleSubsystem m_rumble = new RumbleSubsystem(m_driveController);
   // private final PickupSubsystem m_pickup = new PickupSubsystem();
   Command driveCommand;
 
@@ -109,6 +112,7 @@ public class RobotContainer {
     m_manipController.a().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.SPEAKER)));
     m_manipController.b().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.AMP)));
     m_manipController.y().onTrue(Commands.runOnce(()-> Aimlock.setDoState(DoState.SOURCE)));
+    new Trigger(()-> m_swerve.isLLOdoGood(5.0)).whileTrue(m_rumble.setRumbleCommand(RumbleType.kBothRumble, 0.5, 0.25));
   }
 
   Command path1;
@@ -117,7 +121,7 @@ public class RobotContainer {
     // Add a button to run the example auto to SmartDashboard, this will also be in the auto chooser built above
     //SmartDashboard.putData("Example Auto", AutoBuilder.buildAuto("Example Auto"));
     // Add a button to run a simple example path
-    path1 = AutoBuilder.buildAuto("Vision Test");
+    path1 = AutoBuilder.buildAuto("first real auto");
     autoChooser.addOption("path", path1);
     // Load the path we want to pathfind to and follow
     PathPlannerPath path = PathPlannerPath.fromPathFile("Score Amp");
