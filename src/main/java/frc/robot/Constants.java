@@ -6,26 +6,26 @@ import frc.robot.Subsystems.Drivetrain;
 public class Constants {
     public static class ID {
         // Swerve motor controller IDs
-        public static final int kFrontLeftTurn = 1;
-        public static final int kFrontLeftDrive = 2;
+        public static final int kFrontLeftTurn = 14;
+        public static final int kFrontLeftDrive = 18;
 
-        public static final int kFrontRightTurn = 3;
-        public static final int kFrontRightDrive = 4;
+        public static final int kFrontRightTurn = 11;
+        public static final int kFrontRightDrive = 15;
 
-        public static final int kBackRightTurn = 5;
-        public static final int kBackRightDrive = 6;
+        public static final int kBackRightTurn = 12;
+        public static final int kBackRightDrive = 16;
 
-        public static final int kBackLeftTurn = 7;
-        public static final int kBackLeftDrive = 8;
+        public static final int kBackLeftTurn = 13;
+        public static final int kBackLeftDrive = 17;
 
         // CanCoder IDs
-        public static final int kFrontLeftCANCoder = 9;
-        public static final int kFrontRightCANCoder = 10;
-        public static final int kBackRightCANCoder = 11;
-        public static final int kBackLeftCANCoder = 12;
+        public static final int kFrontLeftCANCoder = 24;
+        public static final int kFrontRightCANCoder = 21;
+        public static final int kBackRightCANCoder = 22;
+        public static final int kBackLeftCANCoder = 23;
 
         // Pigeon
-        public static final int kGyro = 13;
+        public static final int kGyro = 2;
     }
 
     public static class Deadbands {
@@ -40,8 +40,8 @@ public class Constants {
     }
 
     public static class DriveTrain {
-        public static final double kDistanceMiddleToFrontMotor = 0.365125;
-        public static final double kDistanceMiddleToSideMotor = 0.263525;
+        public static final double kDistanceMiddleToFrontMotor = 0.362;
+        public static final double kDistanceMiddleToSideMotor = 0.2604;
         public static final double kDriveBaseRadius = Math.sqrt( //distance from the middle to the furthest wheel
         kDistanceMiddleToFrontMotor*kDistanceMiddleToFrontMotor +
         kDistanceMiddleToSideMotor*kDistanceMiddleToSideMotor);
@@ -85,9 +85,9 @@ public class Constants {
         /**
          * Encoder offsets
          */
-        public static final double kFrontLeftOffset = 3.0683;
-        public static final double kFrontRightOffset = -1.8806;
-        public static final double kBackLeftOffset = -0.8590;
-        public static final double kBackRightOffset = -0.3344;
+        public static final double kFrontLeftOffset = 2.7151;
+        public static final double kFrontRightOffset = 1.6106;
+        public static final double kBackLeftOffset = 2.0594;
+        public static final double kBackRightOffset = 2.7244;
     }
 }
