@@ -50,7 +50,8 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.turnPID,
             DriveTrain.drivePID,
             DriveTrain.turnFeedForward,
-            DriveTrain.driveFeedForward);
+            DriveTrain.driveFeedForward,
+            false);
     private final SwerveModule m_frontRight = new SwerveModule("FrontRight",
             ID.kFrontRightDrive,
             ID.kFrontRightTurn,
@@ -59,7 +60,8 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.turnPID,
             DriveTrain.drivePID,
             DriveTrain.turnFeedForward,
-            DriveTrain.driveFeedForward);
+            DriveTrain.driveFeedForward,
+            false);
     private final SwerveModule m_backLeft = new SwerveModule("BackLeft",
             ID.kBackLeftDrive,
             ID.kBackLeftTurn,
@@ -68,7 +70,8 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.turnPID,
             DriveTrain.drivePID,
             DriveTrain.turnFeedForward,
-            DriveTrain.driveFeedForward);
+            DriveTrain.driveFeedForward,
+            false);
     private final SwerveModule m_backRight = new SwerveModule("BackRight",
             ID.kBackRightDrive,
             ID.kBackRightTurn,
@@ -77,7 +80,8 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.turnPID,
             DriveTrain.drivePID,
             DriveTrain.turnFeedForward,
-            DriveTrain.driveFeedForward);
+            DriveTrain.driveFeedForward,
+            true);
 
     private final Pigeon2 m_gyro;
 

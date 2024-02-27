@@ -93,7 +93,8 @@ public class SwerveModule {
             double[] steerPID,
             double[] drivePID,
             double[] turnFeedForward,
-            double[] driveFeedForward) {
+            double[] driveFeedForward,
+            boolean isInverted) {
 
         m_drivePIDController = new PIDController(
                 drivePID[0],
@@ -113,6 +114,7 @@ public class SwerveModule {
          * Set up the drive motor
          */
         m_driveMotor = new CANSparkMax(driveMotorChannel, MotorType.kBrushless);
+        m_driveMotor.setInverted(isInverted);
         m_driveMotor.getEncoder().setPosition(0);
         m_driveMotor.setSmartCurrentLimit(40);
         m_driveMotor.getEncoder().setPositionConversionFactor(Modules.kDriveEncoderRot2Meter);
@@ -120,11 +122,10 @@ public class SwerveModule {
         m_driveMotor.setIdleMode(IdleMode.kBrake);
 
         /*
-         * Set up the turning motor. We had to invert the turning motor so it agreed
-         * with the turning encoder which direction was positive
+         * Set up the turning motor. 
          */
         m_turningMotor = new CANSparkMax(turningMotorChannel, MotorType.kBrushless);
-        m_turningMotor.setInverted(true);
+        m_turningMotor.setInverted(false);
         m_turningMotor.setSmartCurrentLimit(40);
 
         /*
