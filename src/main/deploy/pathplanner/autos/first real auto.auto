@@ -2,68 +2,37 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 2.098645680886225,
-      "y": 6.511225119454518
+      "x": 1.3140618588929502,
+      "y": 5.545221859674489
     },
-    "rotation": -151.40089370766486
+    "rotation": 1.1233027140755292
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Lock Target in Auto"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.75
+            "pathName": "go to first note"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Dont Lock Target in Auto"
+            "name": "Pickup Piece"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "pick up first note"
+            "pathName": "go to second note"
           }
         },
         {
-          "type": "sequential",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Lock Target in Auto"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.75
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Dont Lock Target in Auto"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "pick up second note"
+            "name": "Pickup Piece"
           }
         }
       ]
