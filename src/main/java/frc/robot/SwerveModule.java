@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.CANSparkMax;
@@ -125,7 +126,7 @@ public class SwerveModule {
          * Set up the turning motor. 
          */
         m_turningMotor = new CANSparkMax(turningMotorChannel, MotorType.kBrushless);
-        m_turningMotor.setInverted(false);
+        m_turningMotor.clearFaults();
         m_turningMotor.setSmartCurrentLimit(40);
 
         /*
@@ -206,13 +207,13 @@ public class SwerveModule {
     // and a ProfiledPIDController
     public void goToPosition(double goalPosition) {
         double targetVelocity = m_turningPIDController.getSetpoint().velocity;
-        double acceleration = (targetVelocity - this.m_turningLastSpeed)
+        double targetAcceleration = (targetVelocity - this.m_turningLastSpeed)
                 / (Timer.getFPGATimestamp() - this.m_turningLastTime);
 
         double actualVelocity = (2 * Math.PI / kEncoderResolution) * m_turningEncoder.getVelocity().getValue();
 
         double pidVal = m_turningPIDController.calculate(this.getActualTurningPosition(), goalPosition);
-        double FFVal = m_turnFeedforward.calculate(m_turningPIDController.getSetpoint().velocity, acceleration);
+        double FFVal = m_turnFeedforward.calculate(m_turningPIDController.getSetpoint().velocity, targetAcceleration);
 
         m_turningMotor.setVoltage(pidVal + FFVal);
         this.m_turningLastSpeed = actualVelocity;

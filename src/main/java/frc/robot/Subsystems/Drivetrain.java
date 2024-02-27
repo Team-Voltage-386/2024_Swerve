@@ -81,7 +81,7 @@ public class Drivetrain extends SubsystemBase {
             DriveTrain.drivePID,
             DriveTrain.turnFeedForward,
             DriveTrain.driveFeedForward,
-            true);
+            false);
 
     private final Pigeon2 m_gyro;
 
