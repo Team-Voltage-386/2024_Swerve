@@ -8,11 +8,6 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.Controller;
-import frc.robot.Constants.ID;
-import frc.robot.Subsystems.Drivetrain;
-import frc.robot.Commands.DriveCommand;
-import frc.robot.Commands.ResetOdoCommand;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -24,20 +19,11 @@ import frc.robot.Commands.ResetOdoCommand;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private final CommandXboxController m_driveController = new CommandXboxController(Controller.kDriveController);
-    private final Pigeon2 m_gyro = new Pigeon2(ID.kGyro);
-    public final Drivetrain m_swerve = new Drivetrain(m_gyro);
-    Command driveCommand;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
-        // Xbox controllers return negative values when we push forward.
-        driveCommand = new DriveCommand(m_swerve);
-        m_swerve.setDefaultCommand(driveCommand);
-
-        // Configure the trigger bindings
         configureBindings();
     }
 
@@ -57,12 +43,5 @@ public class RobotContainer {
      */
     private void configureBindings() {
 
-        // drive bindings
-        m_driveController.rightBumper().onTrue((new ResetOdoCommand(m_swerve)));
-        m_driveController.rightTrigger(0.25).toggleOnTrue(this.m_swerve.toggleFieldRelativeCommand());
-    }
-
-    public Command getTeleOpCommand() {
-        return driveCommand;
     }
 }
