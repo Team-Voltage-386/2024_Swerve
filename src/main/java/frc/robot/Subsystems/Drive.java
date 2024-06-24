@@ -33,7 +33,6 @@ public class Drive extends SubsystemBase {
         double backLeftAngle = Math.atan2(a, c) / Math.PI;
         double frontRightAngle = Math.atan2(b, d) / Math.PI;
         double frontLeftAngle = Math.atan2(b, c) / Math.PI;
-
     }
 
 }
