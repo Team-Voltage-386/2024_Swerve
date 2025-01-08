@@ -4,6 +4,9 @@ import frc.robot.Constants;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagPoseEstimator;
+
 
 public class Limelight {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
