@@ -6,7 +6,10 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagPoseEstimator;
-
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.HttpCamera;
+import edu.wpi.first.cscore.VideoSink;
+import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 
 public class Limelight {
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
@@ -20,9 +23,14 @@ public class Limelight {
     double area = ta.getDouble(0.0);
 
     //post to smart dashboard periodically
+    /*
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
+    */
 
-    
+    public Limelight(){
+
+
+    }
 }
