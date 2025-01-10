@@ -12,6 +12,7 @@ import edu.wpi.first.cscore.VideoSink;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 
 public class Limelight {
+    // to connect to the camera, use "http://10.3.86.12" to see the field, to see the controller, replace 12 with 13
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
     NetworkTableEntry tx = table.getEntry("tx");
     NetworkTableEntry ty = table.getEntry("ty");
@@ -30,6 +31,7 @@ public class Limelight {
     */
 
     public Limelight(){
+
 
 
     }
