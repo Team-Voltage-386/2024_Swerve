@@ -58,7 +58,7 @@ public class Drive extends Command {
         //= ft.calculateLimelightInputX();
         SmartDashboard.putNumber("Intended xSpeed",ft.calculateLimelightInputX());
         //readControllers();
-        dt.drive(xSpeed, ySpeed, rotSpeed);
+        //dt.drive(xSpeed, 0, 0);
     }
 
     @Override
