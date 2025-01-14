@@ -3,11 +3,13 @@ package frc.robot.Commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.Deadbands;
 import frc.robot.Subsystems.Drivetrain;
 import frc.robot.Constants.Controller;
+import frc.robot.Subsystems.FollowTag;
 
 public class Drive extends Command {
     Drivetrain dt;
@@ -15,6 +17,7 @@ public class Drive extends Command {
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(Controller.kRateLimitXSpeed);
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(Controller.kRateLimitYSpeed);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(Controller.kRateLimitRot);
+    private final FollowTag ft = new FollowTag();
 
     public Drive(Drivetrain dt) {
         this.dt = dt;
@@ -50,7 +53,11 @@ public class Drive extends Command {
 
     @Override
     public void execute() {
-        readControllers();
+                
+        xSpeed = 0;
+        //= ft.calculateLimelightInputX();
+        SmartDashboard.putNumber("Intended xSpeed",ft.calculateLimelightInputX());
+        //readControllers();
         dt.drive(xSpeed, ySpeed, rotSpeed);
     }
 

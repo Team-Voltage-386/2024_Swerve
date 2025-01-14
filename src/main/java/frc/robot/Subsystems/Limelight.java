@@ -12,18 +12,19 @@ import edu.wpi.first.cscore.VideoSink;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 
 public class Limelight {
-    // to connect to the camera, use "http://10.3.86.12" to see the field, to see the controller, replace 12 with 13
+    // to connect to the camera, use "http://10.3.86.12"
+    
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
     NetworkTableEntry tx = table.getEntry("tx");
     NetworkTableEntry ty = table.getEntry("ty");
     NetworkTableEntry ta = table.getEntry("ta");
 
     //read values periodically
-    double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
-    double area = ta.getDouble(0.0);
+    public double x = tx.getDouble(0.0);
+    public double y = ty.getDouble(0.0);
+    public double area = ta.getDouble(0.0);
 
-    //post to smart dashboard periodically
+        //post to smart dashboard periodically
     /*
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);

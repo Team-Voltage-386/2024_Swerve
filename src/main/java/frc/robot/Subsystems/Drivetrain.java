@@ -269,6 +269,8 @@ public class Drivetrain extends SubsystemBase {
 
         SmartDashboard.putNumber("desired X speed", xSpeed);
         SmartDashboard.putNumber("desired Y speed", ySpeed);
+        SmartDashboard.putNumber("desired Rot Speed", rotSpeed);
+        
         // this.layout.setDesiredRotSpeed(Math.toDegrees(rotSpeed));
     }
 
